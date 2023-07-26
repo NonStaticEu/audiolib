@@ -1,0 +1,71 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'maven-publish'
+    id "org.sonarqube" version "3.5.0.2730"
+}
+
+group = "eu.nonstatic"
+version = "0.1.0"
+
+repositories {
+    mavenCentral()
+}
+
+def lombokVersion = '1.18.24'
+def junitVersion = '5.10.0'
+
+dependencies {
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    implementation('com.ibm.icu:icu4j:73.2')
+    implementation('org.slf4j:slf4j-api:2.0.7')
+    compileOnly("org.projectlombok:lombok:$lombokVersion")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+}
+
+configurations.implementation {
+    exclude group: 'org.slf4j', module: 'slf4j-simple'
+}
+
+
+java {
+    sourceCompatibility = JavaVersion.toVersion("11")
+    targetCompatibility = JavaVersion.toVersion("11")
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.compilerArgs.add('-parameters')
+}
+
+
+// use JUnit 5 platform
+test {
+    testLogging.showStandardStreams = true
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled(true)
+        html.enabled(true)
+    }
+}
+jacocoTestReport {
+    dependsOn test
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}
