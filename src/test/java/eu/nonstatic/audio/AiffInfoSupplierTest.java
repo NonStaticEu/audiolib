@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.nonstatic.audio.AiffInfoSupplier.AiffInfo;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -23,8 +24,19 @@ import org.junit.jupiter.api.Test;
 class AiffInfoSupplierTest implements AudioTestBase {
 
   @Test
-  void should_give_aiff_infos() throws IOException, AudioInfoException {
+  void should_give_infos() throws IOException, AudioInfoException {
     AiffInfo aiffInfo = new AiffInfoSupplier().getInfos(AIFF_URL.openStream(), AIFF_NAME);
+    assertEquals(Duration.ofMillis(30407L), aiffInfo.getDuration());
+  }
+
+  /**
+   * Tests AudioInfoSupplier.getInfo default methods actually
+   */
+  @Test
+  void should_give_infos_from_file() throws IOException, AudioInfoException {
+    File tempFile = File.createTempFile("music", ".aiff");
+    AudioTestBase.copyFileContents(AIFF_URL, tempFile.toPath());
+    AiffInfo aiffInfo = new AiffInfoSupplier().getInfos(tempFile);
     assertEquals(Duration.ofMillis(30407L), aiffInfo.getDuration());
   }
 

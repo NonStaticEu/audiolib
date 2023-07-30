@@ -9,7 +9,12 @@
  */
 package eu.nonstatic.audio;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Those samples are taken from here:
@@ -27,4 +32,12 @@ public interface AudioTestBase {
   URL WAVE_URL = AudioTestBase.class.getResource(WAVE_NAME);
   URL MP3_URL = AudioTestBase.class.getResource(MP3_NAME);
   URL FLAC_URL = AudioTestBase.class.getResource(FLAC_NAME);
+
+
+  static Path copyFileContents(URL url, Path file) throws IOException {
+    try(InputStream mp3Stream  = url.openStream()) {
+      Files.copy(mp3Stream, file, StandardCopyOption.REPLACE_EXISTING);
+    }
+    return file;
+  }
 }

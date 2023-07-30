@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 class Mp3InfoSupplierTest implements AudioTestBase {
 
   @Test
-  void should_give_mp3_infos() throws IOException, AudioInfoException {
+  void should_give_infos() throws IOException, AudioInfoException {
     Mp3Info mp3Info = new Mp3InfoSupplier().getInfos(MP3_URL.openStream(), MP3_NAME);
     assertFalse(mp3Info.isIncomplete());
     assertEquals(Duration.ofNanos(11154285714L), mp3Info.getDuration());

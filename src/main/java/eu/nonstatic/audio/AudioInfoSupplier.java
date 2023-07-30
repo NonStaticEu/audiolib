@@ -17,16 +17,14 @@ import java.nio.file.Path;
 
 public interface AudioInfoSupplier<I extends AudioInfo> {
 
-  default I getInfos(File file) throws AudioInfoException {
+  default I getInfos(File file) throws IllegalArgumentException, IOException, AudioInfoException {
     return getInfos(file.toPath());
   }
 
-  default I getInfos(Path file) throws AudioInfoException {
+  default I getInfos(Path file) throws IllegalArgumentException, IOException, AudioInfoException {
     String name = file.toString();
     try(InputStream is = Files.newInputStream(file)) {
       return getInfos(is, name);
-    } catch (IOException e) {
-      throw new AudioInfoException(name, e);
     }
   }
 

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 class WaveInfoSupplierTest implements AudioTestBase {
 
   @Test
-  void should_give_wave_infos() throws IOException, AudioInfoException {
+  void should_give_infos() throws IOException, AudioInfoException {
     WaveInfo waveInfo = new WaveInfoSupplier().getInfos(WAVE_URL.openStream(), WAVE_NAME);
     assertEquals(Duration.ofMillis(8011L), waveInfo.getDuration());
   }

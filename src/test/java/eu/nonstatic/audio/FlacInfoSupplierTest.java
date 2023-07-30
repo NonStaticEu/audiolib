@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 class FlacInfoSupplierTest implements AudioTestBase {
 
   @Test
-  void should_give_flac_infos() throws IOException, AudioInfoException {
+  void should_give_infos() throws IOException, AudioInfoException {
     FlacInfo flacInfo = new FlacInfoSupplier().getInfos(FLAC_URL.openStream(), FLAC_NAME);
     assertEquals(Duration.ofMillis(3692L), flacInfo.getDuration());
   }
