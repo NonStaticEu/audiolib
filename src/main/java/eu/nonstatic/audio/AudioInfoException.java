@@ -12,6 +12,7 @@ package eu.nonstatic.audio;
 import java.util.Collections;
 import java.util.List;
 import lombok.Getter;
+import lombok.NonNull;
 
 public class AudioInfoException extends Exception {
 
@@ -23,7 +24,7 @@ public class AudioInfoException extends Exception {
     this(name, List.of(), cause);
   }
 
-  public AudioInfoException(String name, List<AudioIssue> issues, Throwable cause) {
+  public AudioInfoException(@NonNull String name, @NonNull List<AudioIssue> issues, Throwable cause) {
     super(cause);
     this.name = name;
     this.issues = issues;
