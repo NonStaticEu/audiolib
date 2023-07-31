@@ -16,7 +16,6 @@ import eu.nonstatic.audio.Mp3InfoSupplier.Mp3Info;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.BufferUnderflowException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -182,7 +181,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
    */
   public Mp3Info getInfos(InputStream is, String name) throws AudioInfoException {
     Mp3Info infos = new Mp3Info();
-    AudioInputStream ais = null;
+    AudioInputStream ais;
     try {
       ais = new AudioInputStream(is, name);
       findData(ais);
@@ -193,10 +192,6 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
       if (infos.isEmpty()) {
         throw new IllegalArgumentException("Could not find a single MP3 frame: " + name);
       }
-    } catch (EOFException e) {
-      log.warn("End of file reached, incomplete frame: {}", name);
-      infos.incomplete = true;
-      infos.addIssue(new AudioIssue(Type.EOF, ais.location()));
     } catch (IOException e) {
       throw new AudioInfoException(name, infos.getIssues(), e);
     }
@@ -229,11 +224,11 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
     }
   }
 
-  private boolean readFramesWithResync(AudioInputStream ais, Mp3Info details) throws IOException {
+  private boolean readFramesWithResync(AudioInputStream ais, Mp3Info infos) throws IOException {
     boolean stop = false;
 
     try {
-      readFrames(ais, details);
+      readFrames(ais, infos);
 
       if (isEndOfFileAhead(ais)) {
         stop = true;
@@ -241,24 +236,28 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
         long locationBeforeResync = ais.location();
         int skipped = resync(ais);
         if(skipped >= 0) {
-          details.addIssue(new AudioIssue(Type.SYNC, locationBeforeResync, skipped));
+          infos.addIssue(new AudioIssue(Type.SYNC, locationBeforeResync, skipped));
           log.info("Managed to resync after skipping {} bytes", skipped);
         } else {
           stop = true;
         }
       }
-    } catch(BufferUnderflowException e) {
+    } catch(EOFException e) {
       stop = true;
+
+      log.warn("End of file reached, incomplete frame: {}", ais.name);
+      infos.incomplete = true;
+      infos.addIssue(new AudioIssue(Type.EOF, ais.location()));
     }
 
     return stop;
   }
 
-  private void readFrames(AudioInputStream ais, Mp3Info details) throws IOException {
+  private void readFrames(AudioInputStream ais, Mp3Info infos) throws IOException {
     try {
       FrameDetails frameDetails;
       while ((frameDetails = readFrame(ais)) != null) {
-        details.appendFrame(frameDetails);
+        infos.appendFrame(frameDetails);
       }
     } catch(MalformedFrameException e) {
       log.warn("Frame seems malformed, will try to find another one");
@@ -270,11 +269,16 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
    * @return the frame details or null if what's read looks like no frame
    * @throws MalformedFrameException
    * @throws IOException
-   * @throws BufferUnderflowException read32bitBE uses readNBytes
    */
-  private FrameDetails readFrame(AudioInputStream ais) throws MalformedFrameException, IOException, BufferUnderflowException {
+  private FrameDetails readFrame(AudioInputStream ais) throws MalformedFrameException, IOException {
     ais.mark(4);
-    int header = ais.read32bitBE();
+
+    int header;
+    try {
+      header = ais.read32bitBE();
+    } catch(EOFException e) { // Means we reached the EOF just after the end of the previous frame. Our job is done.
+      return null;
+    }
     if (!isMp3Frame(header)) {
       ais.reset();
       return null;

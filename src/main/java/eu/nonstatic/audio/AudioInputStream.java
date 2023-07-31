@@ -49,30 +49,30 @@ public class AudioInputStream extends BufferedInputStream {
   }
 
   public short read16bitLE() throws IOException {
-    return ByteBuffer.wrap(readNBytes(2)).order(LITTLE_ENDIAN).getShort();
+    return ByteBuffer.wrap(readNBytesStrict(2)).order(LITTLE_ENDIAN).getShort();
   }
 
   public int read32bitLE() throws IOException {
-    return ByteBuffer.wrap(readNBytes(4)).order(LITTLE_ENDIAN).getInt();
+    return ByteBuffer.wrap(readNBytesStrict(4)).order(LITTLE_ENDIAN).getInt();
   }
 
   public short read16bitBE() throws IOException {
-    return ByteBuffer.wrap(readNBytes(2)).order(BIG_ENDIAN).getShort();
+    return ByteBuffer.wrap(readNBytesStrict(2)).order(BIG_ENDIAN).getShort();
   }
 
   public int read24bitBE() throws IOException {
     return ByteBuffer.allocate(4).order(BIG_ENDIAN)
-        .put((byte) 0).put(readNBytes(3))
+        .put((byte) 0).put(readNBytesStrict(3))
         .flip()
         .getInt();
   }
 
   public int read32bitBE() throws IOException {
-    return ByteBuffer.wrap(readNBytes(4)).order(BIG_ENDIAN).getInt();
+    return ByteBuffer.wrap(readNBytesStrict(4)).order(BIG_ENDIAN).getInt();
   }
 
   public long read64bitBE() throws IOException {
-    return ByteBuffer.wrap(readNBytes(8)).order(BIG_ENDIAN).getLong();
+    return ByteBuffer.wrap(readNBytesStrict(8)).order(BIG_ENDIAN).getLong();
   }
 
   /**
@@ -82,7 +82,7 @@ public class AudioInputStream extends BufferedInputStream {
    * @return the converted float
    */
   public double readExtendedFloatBE() throws IOException {
-    ByteBuffer bb = ByteBuffer.wrap(readNBytes(10)).order(BIG_ENDIAN);
+    ByteBuffer bb = ByteBuffer.wrap(readNBytesStrict(10)).order(BIG_ENDIAN);
     short high = bb.getShort();
     long low = bb.getLong();
 
@@ -95,6 +95,21 @@ public class AudioInputStream extends BufferedInputStream {
 
   public String readString(int len) throws IOException {
     return new String(readNBytes(len), StandardCharsets.US_ASCII); // BIG ENDIAN
+  }
+
+  /**
+   * This method exists to prevent {@link java.nio.BufferUnderflowException} when extracting primitives using a ByteBuffer
+   * eg: ByteBuffer.wrap(readNBytesOrEOF(4)).getInt()
+   * and the end of the stream is reached.
+   * Instead, an {@link EOFException} is thrown, to be handled as every other {@link IOException}
+   */
+  private byte[] readNBytesStrict(int len) throws IOException {
+    byte[] bytes = readNBytes(len);
+    if(bytes.length != len) {
+      throw new EOFException("location: " + location);
+    } else {
+      return bytes;
+    }
   }
 
   void skipNBytesBeforeJava12(long n) throws IOException {
