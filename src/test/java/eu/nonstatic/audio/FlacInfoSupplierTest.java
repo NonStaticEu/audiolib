@@ -13,8 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import eu.nonstatic.audio.AudioIssue.Type;
 import eu.nonstatic.audio.FlacInfoSupplier.FlacInfo;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -22,30 +24,55 @@ import org.junit.jupiter.api.Test;
 
 class FlacInfoSupplierTest implements AudioTestBase {
 
+  FlacInfoSupplier infoSupplier = new FlacInfoSupplier();
+
   @Test
   void should_give_infos() throws IOException, AudioInfoException {
-    FlacInfo flacInfo = new FlacInfoSupplier().getInfos(FLAC_URL.openStream(), FLAC_NAME);
+    FlacInfo flacInfo = infoSupplier.getInfos(FLAC_URL.openStream(), FLAC_NAME);
     assertEquals(Duration.ofMillis(3692L), flacInfo.getDuration());
+    assertTrue(flacInfo.getIssues().isEmpty());
   }
 
   @Test
   void should_throw_read_issue() {
-    FlacInfoSupplier infoSupplier = new FlacInfoSupplier();
-
-    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(new FaultyStream(), FLAC_NAME));
-    assertTrue(aie.getIssues().isEmpty());
-    assertEquals(FLAC_NAME + ": " + IOException.class.getName() + ": reads: 0", aie.getMessage());
+    IOException ioe = assertThrows(IOException.class, () -> infoSupplier.getInfos(new FaultyStream(), FLAC_NAME));
+    assertEquals("reads: 0", ioe.getMessage());
   }
 
   @Test
-  void should_throw_on_bad_flac_header() throws AudioInfoException {
-    ByteBuffer bb = ByteBuffer.allocate(12);
-    bb.put("NOPE".getBytes());
-    bb.putInt(1234);
+  void should_throw_on_bad_flac_header() {
+    ByteBuffer bb = ByteBuffer.allocate(12)
+      .put("NOPE".getBytes())
+      .putInt(1234);
 
-    FlacInfoSupplier infoSupplier = new FlacInfoSupplier();
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, FLAC_NAME));
     assertEquals("Not a FLAC file: /audio/Filtered_envelope_sawtooth_moog.flac", iae.getMessage());
+  }
+
+  @Test
+  void should_throw_when_no_stream_info() {
+    ByteBuffer bb = ByteBuffer.allocate(5)
+      .put("fLaC".getBytes())
+      .put((byte)6);
+
+    ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, FLAC_NAME));
+    assertEquals("STREAMINFO block not found: /audio/Filtered_envelope_sawtooth_moog.flac", iae.getMessage());
+  }
+
+  @Test
+  void should_throw_on_eof() {
+    ByteBuffer bb = ByteBuffer.allocate(4)
+      .put("fLaC".getBytes());
+      // and nothing else
+
+    ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
+    AudioInfoException iae = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, FLAC_NAME));
+    assertEquals(1, iae.getIssues().size());
+    AudioIssue issue = iae.getIssues().get(0);
+    assertEquals(Type.EOF, issue.getType());
+    assertEquals(4, issue.getLocation());
+    assertEquals(EOFException.class, issue.getCause().getClass());
   }
 }

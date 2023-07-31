@@ -11,7 +11,6 @@ package eu.nonstatic.audio;
 
 import static java.util.Map.entry;
 
-import eu.nonstatic.audio.AudioIssue.Type;
 import eu.nonstatic.audio.Mp3InfoSupplier.Mp3Info;
 import java.io.EOFException;
 import java.io.IOException;
@@ -179,21 +178,22 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
    * https://en.wikipedia.org/wiki/APE_tag
    * We're assuming there is no weird sync/alignment issue
    */
-  public Mp3Info getInfos(InputStream is, String name) throws AudioInfoException {
+  public Mp3Info getInfos(InputStream is, String name) throws IOException, AudioInfoException {
     Mp3Info infos = new Mp3Info();
-    AudioInputStream ais;
-    try {
-      ais = new AudioInputStream(is, name);
-      findData(ais);
-      skipID3v2(ais);
 
+    // Let it fail as an IOException/EOFException as long as we haven't reached frames
+    AudioInputStream ais = new AudioInputStream(is, name);
+    findData(ais);
+    skipID3v2(ais);
+
+    try {
       while(!readFramesWithResync(ais, infos));
 
       if (infos.isEmpty()) {
         throw new IllegalArgumentException("Could not find a single MP3 frame: " + name);
       }
-    } catch (IOException e) {
-      throw new AudioInfoException(name, infos.getIssues(), e);
+    } catch (EOFException e) {
+      throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
     }
     return infos;
   }
@@ -201,7 +201,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
   private void findData(AudioInputStream ais) throws IOException {
     do {
       ais.mark(1);
-    } while(ais.read() == 0x00);
+    } while(ais.readStrict() == 0x00);
     ais.reset();
   }
 
@@ -210,9 +210,9 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
     ais.mark(3);
     String tag2 = ais.readString(3);
     if ("ID3".equals(tag2)) {
-      int minorVersion = ais.read();
-      int revVersion = ais.read();
-      int flags = ais.read();
+      int minorVersion = ais.readStrict();
+      int revVersion = ais.readStrict();
+      int flags = ais.readStrict();
       // byte length of the extended header, the padding and the frames after desynchronisation.
       // If a footer is present this equals to (‘total size’ - 20) bytes, otherwise (‘total size’ - 10) bytes.
       int size = read32bitSynchSafe(ais);
@@ -228,7 +228,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
     boolean stop = false;
 
     try {
-      readFrames(ais, infos);
+      readFrames(ais, infos); // reads till a frame is malformed, or EOF
 
       if (isEndOfFileAhead(ais)) {
         stop = true;
@@ -236,7 +236,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
         long locationBeforeResync = ais.location();
         int skipped = resync(ais);
         if(skipped >= 0) {
-          infos.addIssue(new AudioIssue(Type.SYNC, locationBeforeResync, skipped));
+          infos.addIssue(AudioIssue.sync(locationBeforeResync, skipped));
           log.info("Managed to resync after skipping {} bytes", skipped);
         } else {
           stop = true;
@@ -247,7 +247,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
 
       log.warn("End of file reached, incomplete frame: {}", ais.name);
       infos.incomplete = true;
-      infos.addIssue(new AudioIssue(Type.EOF, ais.location()));
+      infos.addIssue(AudioIssue.eof(ais.location(), e));
     }
 
     return stop;
@@ -268,7 +268,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
    * @param ais
    * @return the frame details or null if what's read looks like no frame
    * @throws MalformedFrameException
-   * @throws IOException
+   * @throws IOException read error or EOF while skipping over a frame
    */
   private FrameDetails readFrame(AudioInputStream ais) throws MalformedFrameException, IOException {
     ais.mark(4);
@@ -364,7 +364,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
   }
 
   private int read32bitSynchSafe(AudioInputStream ais) throws IOException {
-    return read32bitSynchSafeInt(ais.readNBytes(4));
+    return read32bitSynchSafeInt(ais.readNBytesStrict(4));
   }
 
   private static int read32bitSynchSafeInt(byte[] bytes) {

@@ -20,12 +20,11 @@ public class AudioInfoException extends Exception {
   private final String name;
   private final List<AudioIssue> issues;
 
-  public AudioInfoException(String name, Throwable cause) {
-    this(name, List.of(), cause);
+  public AudioInfoException(String name, @NonNull AudioIssue issue) {
+    this(name, List.of(issue));
   }
 
-  public AudioInfoException(@NonNull String name, @NonNull List<AudioIssue> issues, Throwable cause) {
-    super(cause);
+  public AudioInfoException(@NonNull String name, @NonNull List<AudioIssue> issues) {
     this.name = name;
     this.issues = issues;
   }

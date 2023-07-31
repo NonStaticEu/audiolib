@@ -13,53 +13,91 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import eu.nonstatic.audio.AudioIssue.Type;
 import eu.nonstatic.audio.WaveInfoSupplier.WaveInfo;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 class WaveInfoSupplierTest implements AudioTestBase {
 
+  WaveInfoSupplier infoSupplier = new WaveInfoSupplier();
+
   @Test
   void should_give_infos() throws IOException, AudioInfoException {
-    WaveInfo waveInfo = new WaveInfoSupplier().getInfos(WAVE_URL.openStream(), WAVE_NAME);
+    WaveInfo waveInfo = infoSupplier.getInfos(WAVE_URL.openStream(), WAVE_NAME);
     assertEquals(Duration.ofMillis(8011L), waveInfo.getDuration());
+    assertTrue(waveInfo.getIssues().isEmpty());
   }
 
 
   @Test
   void should_throw_read_issue() {
-    WaveInfoSupplier infoSupplier = new WaveInfoSupplier();
-    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(new FaultyStream(), WAVE_NAME));
-    assertTrue(aie.getIssues().isEmpty());
-    assertEquals(WAVE_NAME + ": " + IOException.class.getName() + ": reads: 0", aie.getMessage());
+    IOException ioe = assertThrows(IOException.class, () -> infoSupplier.getInfos(new FaultyStream(), WAVE_NAME));
+    assertEquals("reads: 0", ioe.getMessage());
   }
 
   @Test
-  void should_throw_on_bad_riff_header() throws AudioInfoException {
-    ByteBuffer bb = ByteBuffer.allocate(12);
-    bb.put("XXXX".getBytes());
-    bb.putInt(1234);
-    bb.put("WAVE".getBytes());
+  void should_throw_on_bad_riff_header() {
+    ByteBuffer bb = ByteBuffer.allocate(12)
+      .put("XXXX".getBytes())
+      .putInt(1234)
+      .put("WAVE".getBytes());
 
-    WaveInfoSupplier infoSupplier = new WaveInfoSupplier();
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
-    assertEquals("Not a WAVE file: /audio/Arpeggio.aiff", iae.getMessage());
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
+    assertEquals("Not a WAVE file: /audio/Amplitudenmodulation.wav", iae.getMessage());
   }
 
   @Test
-  void should_throw_on_bad_wave_id_header() throws AudioInfoException {
-    ByteBuffer bb = ByteBuffer.allocate(12);
-    bb.put("RIFF".getBytes());
-    bb.putInt(1234);
-    bb.put("XXXX".getBytes());
+  void should_throw_on_bad_wave_id_header() {
+    ByteBuffer bb = ByteBuffer.allocate(12)
+      .put("RIFF".getBytes())
+      .putInt(1234)
+      .put("XXXX".getBytes());
 
-    WaveInfoSupplier infoSupplier = new WaveInfoSupplier();
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
-    assertEquals("No WAVE id in: /audio/Arpeggio.aiff", iae.getMessage());
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
+    assertEquals("No WAVE id in: /audio/Amplitudenmodulation.wav", iae.getMessage());
+  }
+
+  @Test
+  void should_throw_when_no_format_info() {
+    ByteBuffer bb = ByteBuffer.allocate(24)
+      .put("RIFF".getBytes())
+      .order(ByteOrder.LITTLE_ENDIAN)
+      .putInt(5) // 4+chunks
+      .order(ByteOrder.BIG_ENDIAN)
+      .put("WAVE".getBytes())
+      .put("duh!".getBytes())
+      .order(ByteOrder.LITTLE_ENDIAN)
+      .putInt(4) //chunk size
+      .putInt(42); // dummy chunk
+
+    ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
+    assertEquals("No data chunk in WAVE file: /audio/Amplitudenmodulation.wav", iae.getMessage());
+  }
+
+  @Test
+  void should_throw_on_eof() {
+    ByteBuffer bb = ByteBuffer.allocate(16)
+      .put("RIFF".getBytes())
+      .putInt(1) // chunks
+      .put("WAVE".getBytes())
+      .put("fmt ".getBytes()); // incomplete, just chunk header
+      // and nothing else
+
+    ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
+    AudioInfoException iae = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
+    assertEquals(1, iae.getIssues().size());
+    AudioIssue issue = iae.getIssues().get(0);
+    assertEquals(Type.EOF, issue.getType());
+    assertEquals(15, issue.getLocation());
+    assertEquals(EOFException.class, issue.getCause().getClass());
   }
 }

@@ -10,6 +10,7 @@
 package eu.nonstatic.audio;
 
 import eu.nonstatic.audio.AiffInfoSupplier.AiffInfo;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -24,12 +25,13 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
   /**
    * https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/Docs/AIFF-1.3.pdf
    */
-  public AiffInfo getInfos(InputStream is, String name) throws AudioInfoException {
-    try (AudioInputStream ais = new AudioInputStream(is, name)) {
+  public AiffInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
+    AudioInputStream ais = new AudioInputStream(is, name);
+    try {
       checkHeader(ais);
       return readInfos(ais);
-    } catch (IOException e) {
-      throw new AudioInfoException(name, e);
+    } catch (EOFException e) {
+      throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
     }
   }
 
@@ -54,14 +56,18 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
   }
 
   private void findChunk(AudioInputStream ais, String name) throws IOException {
-    while (true) {
-      String ckName = ais.readString(4);
-      int ckSize = ais.read32bitBE();
-      if (name.equals(ckName)) {
-        break;
-      } else {
-        ais.skipNBytesBeforeJava12(ckSize);
+    try {
+      while (true) {
+        String ckName = ais.readString(4);
+        int ckSize = ais.read32bitBE();
+        if (name.equals(ckName)) {
+          break;
+        } else {
+          ais.skipNBytesBeforeJava12(ckSize);
+        }
       }
+    } catch(EOFException e) {
+      throw new IllegalArgumentException("Chunk " + name + " not found: " + ais.name, e);
     }
   }
 

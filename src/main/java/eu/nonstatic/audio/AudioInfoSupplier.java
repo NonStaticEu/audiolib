@@ -28,5 +28,5 @@ public interface AudioInfoSupplier<I extends AudioInfo> {
     }
   }
 
-  I getInfos(InputStream is, String name) throws AudioInfoException;
+  I getInfos(InputStream is, String name) throws IllegalArgumentException, IOException, AudioInfoException;
 }

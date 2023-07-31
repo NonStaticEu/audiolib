@@ -94,7 +94,7 @@ public class AudioInputStream extends BufferedInputStream {
   }
 
   public String readString(int len) throws IOException {
-    return new String(readNBytes(len), StandardCharsets.US_ASCII); // BIG ENDIAN
+    return new String(readNBytesStrict(len), StandardCharsets.US_ASCII); // BIG ENDIAN
   }
 
   /**
@@ -103,7 +103,7 @@ public class AudioInputStream extends BufferedInputStream {
    * and the end of the stream is reached.
    * Instead, an {@link EOFException} is thrown, to be handled as every other {@link IOException}
    */
-  private byte[] readNBytesStrict(int len) throws IOException {
+  protected byte[] readNBytesStrict(int len) throws IOException {
     byte[] bytes = readNBytes(len);
     if(bytes.length != len) {
       throw new EOFException("location: " + location);
@@ -140,8 +140,20 @@ public class AudioInputStream extends BufferedInputStream {
   @Override
   public synchronized int read() throws IOException {
     int read = super.read();
-    this.location++;
+    if(read != -1) {
+      this.location++;
+    }
     return read;
+  }
+
+  public int readStrict() throws IOException {
+    int read = super.read();
+    if(read != -1) {
+      this.location++;
+      return read;
+    } else {
+      throw new EOFException("location: " + location);
+    }
   }
 
   @Override

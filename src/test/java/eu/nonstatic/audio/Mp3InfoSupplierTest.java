@@ -12,12 +12,14 @@ package eu.nonstatic.audio;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.nonstatic.audio.AudioIssue.Type;
 import eu.nonstatic.audio.Mp3InfoSupplier.Mp3Info;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -35,19 +37,26 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_throw_empty_file() {
+  void should_handle_truncated_file() {
     Mp3InfoSupplier infoSupplier = new Mp3InfoSupplier();
-    ByteArrayInputStream emptyStream = new ByteArrayInputStream(new byte[]{});
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(emptyStream, MP3_NAME));
+    ByteArrayInputStream emptyStream = new ByteArrayInputStream(new byte[]{0, 0, 0, 73, 68, 51, 4}); // leading zeroes for findData
+    EOFException eofe = assertThrows(EOFException.class, () -> infoSupplier.getInfos(emptyStream, MP3_NAME));
+    assertEquals("location: 7", eofe.getMessage());
+  }
+
+  @Test
+  void should_throw_no_frames() {
+    Mp3InfoSupplier infoSupplier = new Mp3InfoSupplier();
+    ByteArrayInputStream noFrameStream = new ByteArrayInputStream(new byte[]{-1, -5, 80, 0, 42, 42, 42});
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(noFrameStream, MP3_NAME));
     assertEquals("Could not find a single MP3 frame: /audio/Moog-juno-303-example.mp3", iae.getMessage());
   }
 
   @Test
   void should_throw_read_issue() {
     Mp3InfoSupplier infoSupplier = new Mp3InfoSupplier();
-    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(new FaultyStream(), MP3_NAME));
-    assertTrue(aie.getIssues().isEmpty());
-    assertEquals(MP3_NAME + ": " + IOException.class.getName() + ": reads: 0", aie.getMessage());
+    IOException ioe = assertThrows(IOException.class, () -> infoSupplier.getInfos(new FaultyStream(), MP3_NAME));
+    assertEquals("reads: 0", ioe.getMessage());
   }
 
   @Test
@@ -68,9 +77,10 @@ class Mp3InfoSupplierTest implements AudioTestBase {
       assertEquals(1, issues.size());
       AudioIssue issue = issues.get(0);
       assertEquals(Type.EOF, issue.getType());
-      assertEquals(incompleteLength + 1, issue.getLocation());
-      assertEquals(0, issue.getSkipped());
-      assertEquals("AudioIssue EOF at 210420", issue.toString());
+      assertEquals(incompleteLength, issue.getLocation());
+      assertNull(issue.getMetas());
+      assertEquals(EOFException.class, issue.getCause().getClass());
+      assertEquals("AudioIssue EOF at 210419", issue.toString());
 
       Duration incompleteDuration = incompleteInfos.getDuration();
       assertEquals(Duration.ofNanos(11128163265L), incompleteDuration);
@@ -103,13 +113,43 @@ class Mp3InfoSupplierTest implements AudioTestBase {
       AudioIssue issue = issues.get(0);
       assertEquals(Type.SYNC, issue.getType());
       assertEquals(1930, issue.getLocation());
-      assertEquals(359, issue.getSkipped());
-      assertEquals("AudioIssue Resynchro at 1930, skipped 359", issue.toString());
+      assertEquals(359L, issue.getMeta(AudioIssue.META_SKIPPED));
+      assertEquals("AudioIssue SYNC at 1930, {skipped=359}", issue.toString());
 
       Duration incompleteDuration = incompleteInfos.getDuration();
       assertEquals(Duration.ofNanos(11128163265L), incompleteDuration);
       // That's one Layer III frame less
       assertEquals(Math.round(1152*(1_000_000_000.0)/44100), fullDuration.minus(incompleteDuration).toNanos());
+    }
+  }
+
+  @Test
+  void should_give_mp3_infos_on_out_of_synch_eof_file() throws IOException, AudioInfoException {
+    byte[] bytes;
+    try(InputStream is = MP3_URL.openStream()) {
+      bytes = is.readAllBytes();
+    }
+
+    int split = 253, garbage = 69;
+    ByteBuffer bb = ByteBuffer.allocate(split + garbage);
+    bb.put(bytes, 0, split);
+    for(int i = 0; i < garbage; i++) {
+      bb.put((byte)42);
+    }
+
+    try(ByteArrayInputStream faultyStream = new ByteArrayInputStream(bb.array())) {
+      Mp3Info incompleteInfos = new Mp3InfoSupplier().getInfos(faultyStream, MP3_NAME + ":outofsyncheof");
+
+      assertTrue(incompleteInfos.isIncomplete());
+
+      List<AudioIssue> issues = incompleteInfos.getIssues();
+      assertEquals(1, issues.size());
+      AudioIssue issue = issues.get(0);
+      assertEquals(Type.EOF, issue.getType());
+      assertEquals(321, issue.getLocation());
+      assertNull(issue.getMetas());
+      assertEquals(EOFException.class, issue.getCause().getClass());
+      assertEquals("AudioIssue EOF at 321", issue.toString());
     }
   }
 

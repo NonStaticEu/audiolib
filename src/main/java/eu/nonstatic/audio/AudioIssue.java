@@ -9,41 +9,69 @@
  */
 package eu.nonstatic.audio;
 
+import java.io.EOFException;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.NonNull;
 
 @Getter
 public class AudioIssue implements Serializable {
 
-  private final Type type;
+  public static final String META_SKIPPED = "skipped";
+
   private final long location;
-  private final long skipped; // skipped before sync recovery
+  private final Type type;
+  private final Throwable cause;
+  private final Map<String, Serializable> metas;
 
-
-  public AudioIssue(Type type, long location) {
-    this(type, location, 0);
+  private AudioIssue(long location, Type type, Throwable cause) {
+    this(location, type, cause, null);
   }
 
-  public AudioIssue(@NonNull Type type, long location, long skipped) {
-    this.type = type;
+  private AudioIssue(long location, Type type, Throwable cause, Map<String, Serializable> metas) {
     this.location = location;
-    this.skipped = skipped;
+    this.type = Objects.requireNonNull(type);
+    this.cause = cause;
+    this.metas = metas != null ? Collections.unmodifiableMap(metas) : null;
+  }
+
+  public Object getMeta(String key) {
+    return metas.get(key);
   }
 
   @Override
   public String toString() {
-    String message = null;
-    if(type == Type.SYNC) {
-      message = "Resynchro at " + location + ", skipped " + skipped;
-    } else if(type == Type.EOF) {
-      message = "EOF at " + location;
-    }
-
-    return getClass().getSimpleName() + ' ' + message;
+    String details = Optional.ofNullable(metas)
+        .filter(map -> !map.isEmpty())
+        .map(map -> ", " + map)
+        .orElse("");
+    return AudioIssue.class.getSimpleName() + ' ' + type + " at " + location + details;
   }
 
+  public static AudioIssue sync(long location, long skipped) {
+    return new AudioIssue(location, Type.SYNC, null,
+        Map.of(META_SKIPPED, skipped) // skipped before sync recovery
+    );
+  }
+
+  public static AudioIssue eof(long location, @NonNull EOFException exception) {
+    return new AudioIssue(location, Type.EOF, exception);
+  }
+
+  public static AudioIssue other(long location, @NonNull Throwable throwable) {
+    return new AudioIssue(location, Type.OTHER, throwable);
+  }
+
+  public static AudioIssue other(long location, Map<String, Serializable> metas) {
+    return new AudioIssue(location, Type.OTHER, null, metas);
+  }
+
+
   public enum Type {
-    SYNC, EOF
+    SYNC, EOF, OTHER
   }
 }

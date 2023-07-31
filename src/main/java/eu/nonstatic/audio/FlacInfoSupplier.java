@@ -10,6 +10,7 @@
 package eu.nonstatic.audio;
 
 import eu.nonstatic.audio.FlacInfoSupplier.FlacInfo;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -26,12 +27,13 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
   /**
    * https://xiph.org/flac/format.html#metadata_block_streaminfo
    */
-  public FlacInfo getInfos(InputStream is, String name) throws AudioInfoException {
-    try (AudioInputStream ais = new AudioInputStream(is, name)) {
+  public FlacInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
+    AudioInputStream ais = new AudioInputStream(is, name);
+    try {
       checkHeader(ais);
       return readInfos(ais);
-    } catch (IOException e) {
-      throw new AudioInfoException(name, e);
+    } catch (EOFException e) {
+      throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
     }
   }
 
@@ -42,7 +44,7 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
   }
 
   private FlacInfo readInfos(AudioInputStream ais) throws IOException {
-    int blockType = ais.read() & 0x7;
+    int blockType = ais.readStrict() & 0x7;
     if (blockType == STREAMINFO_BLOCK_TYPE) {
       ais.skipNBytesBeforeJava12(3); // length
       ais.skipNBytesBeforeJava12(10);

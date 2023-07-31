@@ -14,7 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.nonstatic.audio.AiffInfoSupplier.AiffInfo;
+import eu.nonstatic.audio.AudioIssue.Type;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,10 +25,13 @@ import org.junit.jupiter.api.Test;
 
 class AiffInfoSupplierTest implements AudioTestBase {
 
+  AiffInfoSupplier infoSupplier = new AiffInfoSupplier();
+
   @Test
   void should_give_infos() throws IOException, AudioInfoException {
-    AiffInfo aiffInfo = new AiffInfoSupplier().getInfos(AIFF_URL.openStream(), AIFF_NAME);
+    AiffInfo aiffInfo = infoSupplier.getInfos(AIFF_URL.openStream(), AIFF_NAME);
     assertEquals(Duration.ofMillis(30407L), aiffInfo.getDuration());
+    assertTrue(aiffInfo.getIssues().isEmpty());
   }
 
   /**
@@ -36,63 +41,109 @@ class AiffInfoSupplierTest implements AudioTestBase {
   void should_give_infos_from_file() throws IOException, AudioInfoException {
     File tempFile = File.createTempFile("music", ".aiff");
     AudioTestBase.copyFileContents(AIFF_URL, tempFile.toPath());
-    AiffInfo aiffInfo = new AiffInfoSupplier().getInfos(tempFile);
+    AiffInfo aiffInfo = infoSupplier.getInfos(tempFile);
     assertEquals(Duration.ofMillis(30407L), aiffInfo.getDuration());
   }
 
   @Test
   void should_throw_read_issue() {
-    AiffInfoSupplier infoSupplier = new AiffInfoSupplier();
-    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(new FaultyStream(), AIFF_NAME));
-    assertTrue(aie.getIssues().isEmpty());
-    assertEquals(AIFF_NAME + ": " + IOException.class.getName() + ": reads: 0", aie.getMessage());
+    IOException ioe = assertThrows(IOException.class, () -> infoSupplier.getInfos(new FaultyStream(), AIFF_NAME));
+    assertEquals("reads: 0", ioe.getMessage());
   }
 
   @Test
-  void should_throw_on_bad_form_header() throws AudioInfoException {
-    ByteBuffer bb = ByteBuffer.allocate(12);
-    bb.put("XXXX".getBytes());
-    bb.putInt(1234);
-    bb.put("AIFF".getBytes());
+  void should_throw_on_bad_form_header() {
+    ByteBuffer bb = ByteBuffer.allocate(12)
+      .put("XXXX".getBytes())
+      .putInt(1234)
+      .put("AIFF".getBytes());
 
-    AiffInfoSupplier infoSupplier = new AiffInfoSupplier();
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
     assertEquals("Not an AIFF file: /audio/Arpeggio.aiff", iae.getMessage());
   }
 
   @Test
-  void should_throw_on_bad_aiff_id_header() throws AudioInfoException {
-    ByteBuffer bb = ByteBuffer.allocate(12);
-    bb.put("FORM".getBytes());
-    bb.putInt(1234);
-    bb.put("XXXX".getBytes());
+  void should_throw_on_bad_aiff_id_header() {
+    ByteBuffer bb = ByteBuffer.allocate(12)
+      .put("FORM".getBytes())
+      .putInt(1234)
+      .put("XXXX".getBytes());
 
-    AiffInfoSupplier infoSupplier = new AiffInfoSupplier();
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
     assertEquals("No AIFF id in: /audio/Arpeggio.aiff", iae.getMessage());
   }
 
   @Test
-  void should_search_chunk() throws AudioInfoException {
-    ByteBuffer bb = ByteBuffer.allocate(52); // BIG_ENDIAN by default
+  void should_throw_on_eof() {
+    ByteBuffer bb = ByteBuffer.allocate(22)
+      .put("FORM".getBytes())
+      .putInt(1234)
+      .put("AIFF".getBytes())
+
+      .put("COMM".getBytes())
+      .putInt(18)
+      .putShort((short) 2);
+      // incomplete !
+
+    ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
+    AudioInfoException iae = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals(1, iae.getIssues().size());
+    AudioIssue issue = iae.getIssues().get(0);
+    assertEquals(Type.EOF, issue.getType());
+    assertEquals(21, issue.getLocation());
+    assertEquals(EOFException.class, issue.getCause().getClass());
+  }
+
+  @Test
+  void should_throw_when_no_comm_chunk_1() {
+    ByteBuffer bb = ByteBuffer.allocate(12);
     bb.put("FORM".getBytes());
     bb.putInt(1234);
     bb.put("AIFF".getBytes());
+    // and nothing else
 
-    bb.put("FOOO".getBytes());
-    bb.putInt(6);
-    bb.put(new byte[]{1, 2, 3, 4, 5, 6});
+    ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals("Chunk COMM not found: /audio/Arpeggio.aiff", iae.getMessage());
+  }
 
-    bb.put("COMM".getBytes());
-    bb.putInt(18);
-    bb.putShort((short) 2);
-    bb.putInt(0);
-    bb.putShort((short) 0);
-    bb.putInt(0);
+  @Test
+  void should_throw_when_no_comm_chunk_2() {
+    ByteBuffer bb = ByteBuffer.allocate(28) // BIG_ENDIAN by default
+      .put("FORM".getBytes())
+      .putInt(1234)
+      .put("AIFF".getBytes())
 
-    AiffInfo infos = new AiffInfoSupplier().getInfos(new ByteArrayInputStream(bb.array()), AIFF_NAME);
+      .put("FOOO".getBytes())
+      .putInt(6)
+      .put(new byte[]{1, 2, 3, 4, 5, 6});
+
+    ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
+    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals("Chunk COMM not found: /audio/Arpeggio.aiff", iae.getMessage());
+  }
+
+  @Test
+  void should_find_comm_chunk() throws IOException, AudioInfoException {
+    ByteBuffer bb = ByteBuffer.allocate(52) // BIG_ENDIAN by default
+      .put("FORM".getBytes())
+      .putInt(1234)
+      .put("AIFF".getBytes())
+
+      .put("FOOO".getBytes())
+      .putInt(6)
+      .put(new byte[]{1, 2, 3, 4, 5, 6})
+
+      .put("COMM".getBytes())
+      .putInt(18)
+      .putShort((short) 2)
+      .putInt(0)
+      .putShort((short) 0)
+      .putInt(0);
+
+    AiffInfo infos = infoSupplier.getInfos(new ByteArrayInputStream(bb.array()), AIFF_NAME);
     assertEquals(2, infos.getNumChannels());
   }
 }
