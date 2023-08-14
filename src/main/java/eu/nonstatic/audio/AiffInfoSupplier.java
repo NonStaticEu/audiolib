@@ -25,7 +25,7 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
   /**
    * https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/Docs/AIFF-1.3.pdf
    */
-  public AiffInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
+  public AiffInfo getInfos(InputStream is, String name) throws AudioFormatException, IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);
     try {
       checkHeader(ais);
@@ -35,17 +35,17 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
     }
   }
 
-  private void checkHeader(AudioInputStream ais) throws IOException, IllegalArgumentException {
+  private void checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
     if (!"FORM".equals(ais.readString(4))) {
-      throw new IllegalArgumentException("Not an AIFF file: " + ais.name);
+      throw new AudioFormatException(ais.name, AudioFormat.AIFF, "Not an AIFF file");
     }
     ais.read32bitBE(); // total size
     if (!"AIFF".equals(ais.readString(4))) {
-      throw new IllegalArgumentException("No AIFF id in: " + ais.name);
+      throw new AudioFormatException(ais.name, AudioFormat.AIFF, "No AIFF id");
     }
   }
 
-  private AiffInfo readInfos(AudioInputStream ais) throws IOException {
+  private AiffInfo readInfos(AudioInputStream ais) throws AudioFormatException, IOException {
     findChunk(ais, "COMM");
     return AiffInfo.builder()
         .numChannels(ais.read16bitBE())
@@ -55,7 +55,7 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
         .build();
   }
 
-  private void findChunk(AudioInputStream ais, String name) throws IOException {
+  private void findChunk(AudioInputStream ais, String name) throws AudioFormatException, IOException {
     try {
       while (true) {
         String ckName = ais.readString(4);
@@ -67,7 +67,7 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
         }
       }
     } catch(EOFException e) {
-      throw new IllegalArgumentException("Chunk " + name + " not found: " + ais.name, e);
+      throw new AudioFormatException(ais.name, AudioFormat.AIFF, "Chunk " + name + " not found", e);
     }
   }
 

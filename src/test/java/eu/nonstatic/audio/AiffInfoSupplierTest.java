@@ -28,7 +28,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
   AiffInfoSupplier infoSupplier = new AiffInfoSupplier();
 
   @Test
-  void should_give_infos() throws IOException, AudioInfoException {
+  void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
     AiffInfo aiffInfo = infoSupplier.getInfos(AIFF_URL.openStream(), AIFF_NAME);
     assertEquals(Duration.ofMillis(30407L), aiffInfo.getDuration());
     assertTrue(aiffInfo.getIssues().isEmpty());
@@ -38,7 +38,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
    * Tests AudioInfoSupplier.getInfo default methods actually
    */
   @Test
-  void should_give_infos_from_file() throws IOException, AudioInfoException {
+  void should_give_infos_from_file() throws AudioFormatException, IOException, AudioInfoException {
     File tempFile = File.createTempFile("music", ".aiff");
     AudioTestBase.copyFileContents(AIFF_URL, tempFile.toPath());
     AiffInfo aiffInfo = infoSupplier.getInfos(tempFile);
@@ -59,8 +59,8 @@ class AiffInfoSupplierTest implements AudioTestBase {
       .put("AIFF".getBytes());
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
-    assertEquals("Not an AIFF file: /audio/Arpeggio.aiff", iae.getMessage());
+    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals("Not an AIFF file: /audio/Arpeggio.aiff", afe.getMessage());
   }
 
   @Test
@@ -71,8 +71,8 @@ class AiffInfoSupplierTest implements AudioTestBase {
       .put("XXXX".getBytes());
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
-    assertEquals("No AIFF id in: /audio/Arpeggio.aiff", iae.getMessage());
+    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals("No AIFF id: /audio/Arpeggio.aiff", afe.getMessage());
   }
 
   @Test
@@ -105,8 +105,8 @@ class AiffInfoSupplierTest implements AudioTestBase {
     // and nothing else
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
-    assertEquals("Chunk COMM not found: /audio/Arpeggio.aiff", iae.getMessage());
+    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals("Chunk COMM not found: /audio/Arpeggio.aiff", afe.getMessage());
   }
 
   @Test
@@ -121,12 +121,12 @@ class AiffInfoSupplierTest implements AudioTestBase {
       .put(new byte[]{1, 2, 3, 4, 5, 6});
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
-    assertEquals("Chunk COMM not found: /audio/Arpeggio.aiff", iae.getMessage());
+    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals("Chunk COMM not found: /audio/Arpeggio.aiff", afe.getMessage());
   }
 
   @Test
-  void should_find_comm_chunk() throws IOException, AudioInfoException {
+  void should_find_comm_chunk() throws AudioFormatException, IOException, AudioInfoException {
     ByteBuffer bb = ByteBuffer.allocate(52) // BIG_ENDIAN by default
       .put("FORM".getBytes())
       .putInt(1234)

@@ -27,7 +27,7 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
   /**
    * https://xiph.org/flac/format.html#metadata_block_streaminfo
    */
-  public FlacInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
+  public FlacInfo getInfos(InputStream is, String name) throws AudioFormatException, IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);
     try {
       checkHeader(ais);
@@ -37,13 +37,13 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
     }
   }
 
-  private void checkHeader(AudioInputStream ais) throws IOException, IllegalArgumentException {
+  private void checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
     if (!"fLaC".equals(ais.readString(4))) {
-      throw new IllegalArgumentException("Not a FLAC file: " + ais.name);
+      throw new AudioFormatException(ais.name, AudioFormat.FLAC, "Not a FLAC file");
     }
   }
 
-  private FlacInfo readInfos(AudioInputStream ais) throws IOException {
+  private FlacInfo readInfos(AudioInputStream ais) throws AudioFormatException, IOException {
     int blockType = ais.readStrict() & 0x7;
     if (blockType == STREAMINFO_BLOCK_TYPE) {
       ais.skipNBytesBeforeJava12(3); // length
@@ -62,7 +62,7 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
           .numFrames(totalSamples)
           .build();
     } else {
-      throw new IllegalArgumentException("STREAMINFO block not found: " + ais.name);
+      throw new AudioFormatException(ais.name, AudioFormat.FLAC, "STREAMINFO block not found");
     }
   }
 

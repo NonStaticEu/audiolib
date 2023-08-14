@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 class Mp3InfoSupplierTest implements AudioTestBase {
 
   @Test
-  void should_give_infos() throws IOException, AudioInfoException {
+  void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
     Mp3Info mp3Info = new Mp3InfoSupplier().getInfos(MP3_URL.openStream(), MP3_NAME);
     assertFalse(mp3Info.isIncomplete());
     assertEquals(Duration.ofNanos(11154285714L), mp3Info.getDuration());
@@ -48,8 +48,8 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   void should_throw_no_frames() {
     Mp3InfoSupplier infoSupplier = new Mp3InfoSupplier();
     ByteArrayInputStream noFrameStream = new ByteArrayInputStream(new byte[]{-1, -5, 80, 0, 42, 42, 42});
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(noFrameStream, MP3_NAME));
-    assertEquals("Could not find a single MP3 frame: /audio/Moog-juno-303-example.mp3", iae.getMessage());
+    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(noFrameStream, MP3_NAME));
+    assertEquals("Could not find a single frame: /audio/Moog-juno-303-example.mp3", afe.getMessage());
   }
 
   @Test
@@ -60,7 +60,7 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_give_mp3_infos_on_incomplete_file() throws IOException, AudioInfoException {
+  void should_give_mp3_infos_on_incomplete_file() throws AudioFormatException, IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = MP3_URL.openStream()) {
       bytes = is.readAllBytes();
@@ -90,7 +90,7 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_give_mp3_infos_on_out_of_synch_file() throws IOException, AudioInfoException {
+  void should_give_mp3_infos_on_out_of_synch_file() throws AudioFormatException, IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = MP3_URL.openStream()) {
       bytes = is.readAllBytes();
@@ -124,7 +124,7 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_give_mp3_infos_on_out_of_synch_eof_file() throws IOException, AudioInfoException {
+  void should_give_mp3_infos_on_out_of_synch_eof_file() throws AudioFormatException, IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = MP3_URL.openStream()) {
       bytes = is.readAllBytes();

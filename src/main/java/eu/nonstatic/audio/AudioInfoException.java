@@ -11,13 +11,10 @@ package eu.nonstatic.audio;
 
 import java.util.Collections;
 import java.util.List;
-import lombok.Getter;
 import lombok.NonNull;
 
-public class AudioInfoException extends Exception {
+public class AudioInfoException extends AudioException {
 
-  @Getter
-  private final String name;
   private final List<AudioIssue> issues;
 
   public AudioInfoException(String name, @NonNull AudioIssue issue) {
@@ -25,16 +22,11 @@ public class AudioInfoException extends Exception {
   }
 
   public AudioInfoException(@NonNull String name, @NonNull List<AudioIssue> issues) {
-    this.name = name;
+    super(name, null);
     this.issues = issues;
   }
 
   public List<AudioIssue> getIssues() {
     return Collections.unmodifiableList(issues);
-  }
-
-  @Override
-  public String getMessage() {
-    return name + ": " + super.getMessage();
   }
 }

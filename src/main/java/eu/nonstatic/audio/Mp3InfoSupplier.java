@@ -178,7 +178,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
    * https://en.wikipedia.org/wiki/APE_tag
    * We're assuming there is no weird sync/alignment issue
    */
-  public Mp3Info getInfos(InputStream is, String name) throws IOException, AudioInfoException {
+  public Mp3Info getInfos(InputStream is, String name) throws AudioFormatException, IOException, AudioInfoException {
     Mp3Info infos = new Mp3Info();
 
     // Let it fail as an IOException/EOFException as long as we haven't reached frames
@@ -190,7 +190,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
       while(!readFramesWithResync(ais, infos));
 
       if (infos.isEmpty()) {
-        throw new IllegalArgumentException("Could not find a single MP3 frame: " + name);
+        throw new AudioFormatException(name, AudioFormat.MP3, "Could not find a single frame");
       }
     } catch (EOFException e) {
       throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));

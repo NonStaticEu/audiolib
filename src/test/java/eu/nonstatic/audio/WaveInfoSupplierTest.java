@@ -28,7 +28,7 @@ class WaveInfoSupplierTest implements AudioTestBase {
   WaveInfoSupplier infoSupplier = new WaveInfoSupplier();
 
   @Test
-  void should_give_infos() throws IOException, AudioInfoException {
+  void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
     WaveInfo waveInfo = infoSupplier.getInfos(WAVE_URL.openStream(), WAVE_NAME);
     assertEquals(Duration.ofMillis(8011L), waveInfo.getDuration());
     assertTrue(waveInfo.getIssues().isEmpty());
@@ -49,8 +49,8 @@ class WaveInfoSupplierTest implements AudioTestBase {
       .put("WAVE".getBytes());
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
-    assertEquals("Not a WAVE file: /audio/Amplitudenmodulation.wav", iae.getMessage());
+    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
+    assertEquals("Not a WAVE file: /audio/Amplitudenmodulation.wav", afe.getMessage());
   }
 
   @Test
@@ -61,8 +61,8 @@ class WaveInfoSupplierTest implements AudioTestBase {
       .put("XXXX".getBytes());
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
-    assertEquals("No WAVE id in: /audio/Amplitudenmodulation.wav", iae.getMessage());
+    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
+    assertEquals("No WAVE id: /audio/Amplitudenmodulation.wav", afe.getMessage());
   }
 
   @Test
@@ -79,8 +79,8 @@ class WaveInfoSupplierTest implements AudioTestBase {
       .putInt(42); // dummy chunk
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
-    assertEquals("No data chunk in WAVE file: /audio/Amplitudenmodulation.wav", iae.getMessage());
+    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
+    assertEquals("No data chunk: /audio/Amplitudenmodulation.wav", afe.getMessage());
   }
 
   @Test

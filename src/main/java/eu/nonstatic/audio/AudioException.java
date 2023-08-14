@@ -9,24 +9,25 @@
  */
 package eu.nonstatic.audio;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import lombok.Getter;
 
-public interface AudioInfoSupplier<I extends AudioInfo> {
+@Getter
+public class AudioException extends Exception {
 
-  default I getInfos(File file) throws AudioFormatException, IOException, AudioInfoException {
-    return getInfos(file.toPath());
+  protected final String name;
+
+  public AudioException(String name, String message) {
+    super(message);
+    this.name = name;
   }
 
-  default I getInfos(Path file) throws AudioFormatException, IOException, AudioInfoException {
-    String name = file.toString();
-    try(InputStream is = Files.newInputStream(file)) {
-      return getInfos(is, name);
-    }
+  public AudioException(String name, String message, Throwable cause) {
+    super(message, cause);
+    this.name = name;
   }
 
-  I getInfos(InputStream is, String name) throws AudioFormatException, IOException, AudioInfoException;
+  @Override
+  public String getMessage() {
+    return super.getMessage() + ": " + name;
+  }
 }

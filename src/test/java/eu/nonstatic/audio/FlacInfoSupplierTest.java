@@ -27,7 +27,7 @@ class FlacInfoSupplierTest implements AudioTestBase {
   FlacInfoSupplier infoSupplier = new FlacInfoSupplier();
 
   @Test
-  void should_give_infos() throws IOException, AudioInfoException {
+  void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
     FlacInfo flacInfo = infoSupplier.getInfos(FLAC_URL.openStream(), FLAC_NAME);
     assertEquals(Duration.ofMillis(3692L), flacInfo.getDuration());
     assertTrue(flacInfo.getIssues().isEmpty());
@@ -46,8 +46,8 @@ class FlacInfoSupplierTest implements AudioTestBase {
       .putInt(1234);
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, FLAC_NAME));
-    assertEquals("Not a FLAC file: /audio/Filtered_envelope_sawtooth_moog.flac", iae.getMessage());
+    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, FLAC_NAME));
+    assertEquals("Not a FLAC file: /audio/Filtered_envelope_sawtooth_moog.flac", afe.getMessage());
   }
 
   @Test
@@ -57,8 +57,8 @@ class FlacInfoSupplierTest implements AudioTestBase {
       .put((byte)6);
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () -> infoSupplier.getInfos(bais, FLAC_NAME));
-    assertEquals("STREAMINFO block not found: /audio/Filtered_envelope_sawtooth_moog.flac", iae.getMessage());
+    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, FLAC_NAME));
+    assertEquals("STREAMINFO block not found: /audio/Filtered_envelope_sawtooth_moog.flac", afe.getMessage());
   }
 
   @Test

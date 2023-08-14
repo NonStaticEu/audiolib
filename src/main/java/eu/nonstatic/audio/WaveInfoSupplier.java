@@ -24,7 +24,7 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
   /**
    * https://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
    */
-  public WaveInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
+  public WaveInfo getInfos(InputStream is, String name) throws AudioFormatException, IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);
     try {
       int nbChunks = checkHeader(ais);
@@ -34,18 +34,18 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
     }
   }
 
-  private int checkHeader(AudioInputStream ais) throws IOException, IllegalArgumentException {
+  private int checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
     if (!"RIFF".equals(ais.readString(4))) {
-      throw new IllegalArgumentException("Not a WAVE file: " + ais.name);
+      throw new AudioFormatException(ais.name, AudioFormat.WAVE, "Not a WAVE file");
     }
     int nbChunks = ais.read32bitLE() - 4;
     if (!"WAVE".equals(ais.readString(4))) {
-      throw new IllegalArgumentException("No WAVE id in: " + ais.name);
+      throw new AudioFormatException(ais.name, AudioFormat.WAVE, "No WAVE id");
     }
     return nbChunks;
   }
 
-  private WaveInfo readDetails(AudioInputStream ais, int nbChunks) throws IOException {
+  private WaveInfo readDetails(AudioInputStream ais, int nbChunks) throws AudioFormatException, IOException {
     WaveInfo info = new WaveInfo();
     for (int c = 0; c < nbChunks; c++) {
       String ckName = ais.readString(4);
@@ -66,7 +66,7 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
         ais.skipNBytesBeforeJava12(ckSize);
       }
     }
-    throw new IllegalArgumentException("No data chunk in WAVE file: " + ais.name);
+    throw new AudioFormatException(ais.name, AudioFormat.WAVE, "No data chunk");
   }
 
   @Getter
