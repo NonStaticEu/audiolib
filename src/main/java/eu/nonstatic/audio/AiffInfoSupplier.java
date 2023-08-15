@@ -36,12 +36,15 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
   }
 
   private void checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
+    long location = ais.location();
     if (!"FORM".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.name, AudioFormat.AIFF, "Not an AIFF file");
+      throw new AudioFormatException(ais.name, location, AudioFormat.AIFF, "No AIFF FORM header");
     }
+
+    location = ais.location();
     ais.read32bitBE(); // total size
     if (!"AIFF".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.name, AudioFormat.AIFF, "No AIFF id");
+      throw new AudioFormatException(ais.name, location, AudioFormat.AIFF, "No AIFF id");
     }
   }
 
@@ -67,7 +70,7 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
         }
       }
     } catch(EOFException e) {
-      throw new AudioFormatException(ais.name, AudioFormat.AIFF, "Chunk " + name + " not found", e);
+      throw new AudioFormatException(ais.name, ais.location(), AudioFormat.AIFF, "Chunk " + name + " not found", e);
     }
   }
 

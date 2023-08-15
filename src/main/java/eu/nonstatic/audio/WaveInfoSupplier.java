@@ -35,12 +35,15 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
   }
 
   private int checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
+    long location = ais.location();
     if (!"RIFF".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.name, AudioFormat.WAVE, "Not a WAVE file");
+      throw new AudioFormatException(ais.name, location, AudioFormat.WAVE, "No RIFF header");
     }
+
+    location = ais.location();
     int nbChunks = ais.read32bitLE() - 4;
     if (!"WAVE".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.name, AudioFormat.WAVE, "No WAVE id");
+      throw new AudioFormatException(ais.name, location, AudioFormat.WAVE, "No WAVE id");
     }
     return nbChunks;
   }
@@ -66,7 +69,7 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
         ais.skipNBytesBeforeJava12(ckSize);
       }
     }
-    throw new AudioFormatException(ais.name, AudioFormat.WAVE, "No data chunk");
+    throw new AudioFormatException(ais.name, ais.location(), AudioFormat.WAVE, "No data chunk");
   }
 
   @Getter

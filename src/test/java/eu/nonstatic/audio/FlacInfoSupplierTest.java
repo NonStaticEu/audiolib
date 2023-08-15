@@ -47,7 +47,7 @@ class FlacInfoSupplierTest implements AudioTestBase {
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, FLAC_NAME));
-    assertEquals("Not a FLAC file: /audio/Filtered_envelope_sawtooth_moog.flac", afe.getMessage());
+    assertEquals("No FLAC header at 0: /audio/Filtered_envelope_sawtooth_moog.flac", afe.getMessage());
   }
 
   @Test
@@ -58,7 +58,7 @@ class FlacInfoSupplierTest implements AudioTestBase {
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, FLAC_NAME));
-    assertEquals("STREAMINFO block not found: /audio/Filtered_envelope_sawtooth_moog.flac", afe.getMessage());
+    assertEquals("STREAMINFO block not found at 4: /audio/Filtered_envelope_sawtooth_moog.flac", afe.getMessage());
   }
 
   @Test

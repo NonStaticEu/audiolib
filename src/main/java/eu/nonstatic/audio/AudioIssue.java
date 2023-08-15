@@ -22,6 +22,7 @@ import lombok.NonNull;
 public class AudioIssue implements Serializable {
 
   public static final String META_SKIPPED = "skipped";
+  public static final String META_MESSAGE = "message";
 
   private final long location;
   private final Type type;
@@ -58,6 +59,10 @@ public class AudioIssue implements Serializable {
     );
   }
 
+  public static AudioIssue format(long location, @NonNull AudioFormatException exception) {
+    return new AudioIssue(location, Type.FORMAT, exception);
+  }
+
   public static AudioIssue eof(long location, @NonNull EOFException exception) {
     return new AudioIssue(location, Type.EOF, exception);
   }
@@ -72,6 +77,6 @@ public class AudioIssue implements Serializable {
 
 
   public enum Type {
-    SYNC, EOF, OTHER
+    SYNC, FORMAT, EOF, OTHER
   }
 }

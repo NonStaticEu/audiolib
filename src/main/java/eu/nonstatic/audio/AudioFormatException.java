@@ -14,15 +14,23 @@ import lombok.Getter;
 @Getter
 public class AudioFormatException extends AudioException {
 
+  private final long location;
   private final AudioFormat format;
 
-  public AudioFormatException(String name, AudioFormat format, String message) {
+  public AudioFormatException(String name, long location, AudioFormat format, String message) {
     super(name, message);
+    this.location = location;
     this.format = format;
   }
 
-  public AudioFormatException(String name, AudioFormat format, String message, Throwable cause) {
+  public AudioFormatException(String name, long location, AudioFormat format, String message, Throwable cause) {
     super(name, message, cause);
+    this.location = location;
     this.format = format;
+  }
+
+  @Override
+  public String getMessage() {
+    return super.getMessage() + " at " + location + ": " + name;
   }
 }

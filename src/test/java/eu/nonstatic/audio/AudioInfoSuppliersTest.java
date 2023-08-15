@@ -41,7 +41,8 @@ class AudioInfoSuppliersTest {
 
   @Test
   void should_select_flac_supplier_by_extension() {
-    assertEquals(Mp3InfoSupplier.class, AudioInfoSuppliers.getByExtension("mp3").getClass());
+    assertEquals(Mp3AudioInfoSupplier.class, AudioInfoSuppliers.getByExtension("mp3").getClass());
+    assertEquals(Mp2AudioInfoSupplier.class, AudioInfoSuppliers.getByExtension("mp2").getClass());
     assertEquals(WaveInfoSupplier.class, AudioInfoSuppliers.getByExtension("WAV").getClass());
   }
 

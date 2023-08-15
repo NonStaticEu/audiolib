@@ -38,12 +38,14 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
   }
 
   private void checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
+    long location = ais.location();
     if (!"fLaC".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.name, AudioFormat.FLAC, "Not a FLAC file");
+      throw new AudioFormatException(ais.name, location, AudioFormat.FLAC, "No FLAC header");
     }
   }
 
   private FlacInfo readInfos(AudioInputStream ais) throws AudioFormatException, IOException {
+    long location = ais.location();
     int blockType = ais.readStrict() & 0x7;
     if (blockType == STREAMINFO_BLOCK_TYPE) {
       ais.skipNBytesBeforeJava12(3); // length
@@ -62,7 +64,7 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
           .numFrames(totalSamples)
           .build();
     } else {
-      throw new AudioFormatException(ais.name, AudioFormat.FLAC, "STREAMINFO block not found");
+      throw new AudioFormatException(ais.name, location, AudioFormat.FLAC, "STREAMINFO block not found");
     }
   }
 

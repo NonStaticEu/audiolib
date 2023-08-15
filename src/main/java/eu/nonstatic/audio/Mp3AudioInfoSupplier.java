@@ -9,20 +9,8 @@
  */
 package eu.nonstatic.audio;
 
-import lombok.Getter;
-
-@Getter
-public class AudioException extends Exception {
-
-  protected final String name;
-
-  public AudioException(String name, String message) {
-    super(message);
-    this.name = name;
-  }
-
-  public AudioException(String name, String message, Throwable cause) {
-    super(message, cause);
-    this.name = name;
+public class Mp3AudioInfoSupplier extends MpegAudioInfoSupplier {
+  public Mp3AudioInfoSupplier() {
+    super(AudioFormat.MP3);
   }
 }

@@ -29,4 +29,9 @@ public class AudioInfoException extends AudioException {
   public List<AudioIssue> getIssues() {
     return Collections.unmodifiableList(issues);
   }
+
+  @Override
+  public String getMessage() {
+    return super.getMessage() + ": " + name;
+  }
 }

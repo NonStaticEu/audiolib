@@ -50,7 +50,7 @@ class WaveInfoSupplierTest implements AudioTestBase {
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
-    assertEquals("Not a WAVE file: /audio/Amplitudenmodulation.wav", afe.getMessage());
+    assertEquals("No RIFF header at 0: /audio/Amplitudenmodulation.wav", afe.getMessage());
   }
 
   @Test
@@ -62,7 +62,7 @@ class WaveInfoSupplierTest implements AudioTestBase {
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
-    assertEquals("No WAVE id: /audio/Amplitudenmodulation.wav", afe.getMessage());
+    assertEquals("No WAVE id at 4: /audio/Amplitudenmodulation.wav", afe.getMessage());
   }
 
   @Test
@@ -80,7 +80,7 @@ class WaveInfoSupplierTest implements AudioTestBase {
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
-    assertEquals("No data chunk: /audio/Amplitudenmodulation.wav", afe.getMessage());
+    assertEquals("No data chunk at 24: /audio/Amplitudenmodulation.wav", afe.getMessage());
   }
 
   @Test

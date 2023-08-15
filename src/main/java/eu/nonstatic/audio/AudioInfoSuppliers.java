@@ -20,8 +20,8 @@ public final class AudioInfoSuppliers {
   static {
     AUDIO_INFO_SUPPLIERS.put(AudioFormat.AIFF, new AiffInfoSupplier());
     AUDIO_INFO_SUPPLIERS.put(AudioFormat.WAVE, new WaveInfoSupplier());
-    AUDIO_INFO_SUPPLIERS.put(AudioFormat.MP3,  new Mp3InfoSupplier());
-    AUDIO_INFO_SUPPLIERS.put(AudioFormat.MP2,  new Mp3InfoSupplier());
+    AUDIO_INFO_SUPPLIERS.put(AudioFormat.MP3,  new Mp3AudioInfoSupplier());
+    AUDIO_INFO_SUPPLIERS.put(AudioFormat.MP2,  new Mp2AudioInfoSupplier());
     AUDIO_INFO_SUPPLIERS.put(AudioFormat.FLAC, new FlacInfoSupplier());
   }
 

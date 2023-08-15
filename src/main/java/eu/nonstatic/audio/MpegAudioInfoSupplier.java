@@ -11,7 +11,7 @@ package eu.nonstatic.audio;
 
 import static java.util.Map.entry;
 
-import eu.nonstatic.audio.Mp3InfoSupplier.Mp3Info;
+import eu.nonstatic.audio.MpegAudioInfoSupplier.MpegInfo;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,11 +23,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
+@Getter
+public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInfo> {
 
   private static final int MP3_VERSION_2_5 = 0;
   private static final int MP3_VERSION_2 = 2;
@@ -169,6 +171,12 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
   private static final int LAYER_II_OR_III_SAMPLES_PER_FRAME = 1152;
 
 
+  private AudioFormat format;
+
+  public MpegAudioInfoSupplier(AudioFormat format) {
+    this.format = format;
+  }
+
   /**
    * https://mutagen-specs.readthedocs.io/en/latest/id3/id3v2.4.0-structure.html
    * http://www.datavoyage.com/mpgscript/mpeghdr.htm
@@ -178,8 +186,8 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
    * https://en.wikipedia.org/wiki/APE_tag
    * We're assuming there is no weird sync/alignment issue
    */
-  public Mp3Info getInfos(InputStream is, String name) throws AudioFormatException, IOException, AudioInfoException {
-    Mp3Info infos = new Mp3Info();
+  public MpegInfo getInfos(InputStream is, String name) throws AudioFormatException, AudioInfoException, IOException {
+    MpegInfo infos = new MpegInfo();
 
     // Let it fail as an IOException/EOFException as long as we haven't reached frames
     AudioInputStream ais = new AudioInputStream(is, name);
@@ -187,10 +195,11 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
     skipID3v2(ais);
 
     try {
+      long framesLocation = ais.location();
       while(!readFramesWithResync(ais, infos));
 
       if (infos.isEmpty()) {
-        throw new AudioFormatException(name, AudioFormat.MP3, "Could not find a single frame");
+        throw new AudioFormatException(name, framesLocation, format, "Could not find a single frame");
       }
     } catch (EOFException e) {
       throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
@@ -206,7 +215,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
   }
 
 
-  private void skipID3v2(AudioInputStream ais) throws IOException {
+  void skipID3v2(AudioInputStream ais) throws IOException {
     ais.mark(3);
     String tag2 = ais.readString(3);
     if ("ID3".equals(tag2)) {
@@ -224,7 +233,7 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
     }
   }
 
-  private boolean readFramesWithResync(AudioInputStream ais, Mp3Info infos) throws IOException {
+  private boolean readFramesWithResync(AudioInputStream ais, MpegInfo infos) throws IOException {
     boolean stop = false;
 
     try {
@@ -253,26 +262,29 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
     return stop;
   }
 
-  private void readFrames(AudioInputStream ais, Mp3Info infos) throws IOException {
+  private void readFrames(AudioInputStream ais, MpegInfo infos) throws IOException {
     try {
       FrameDetails frameDetails;
       while ((frameDetails = readFrame(ais)) != null) {
         infos.appendFrame(frameDetails);
       }
     } catch(MalformedFrameException e) {
-      log.warn("Frame seems malformed, will try to find another one");
+      long location = e.getLocation();
+      log.warn("Frame is malformed at {}, will seek till next one", location);
+      infos.addIssue(AudioIssue.format(location, e));
     }
   }
 
   /**
    * @param ais
    * @return the frame details or null if what's read looks like no frame
-   * @throws MalformedFrameException
+   * @throws MalformedFrameException when the frame header looks unhealthy
    * @throws IOException read error or EOF while skipping over a frame
    */
-  private FrameDetails readFrame(AudioInputStream ais) throws MalformedFrameException, IOException {
+  FrameDetails readFrame(AudioInputStream ais) throws MalformedFrameException, IOException {
     ais.mark(4);
 
+    long headerLocation = ais.location();
     int header;
     try {
       header = ais.read32bitBE();
@@ -293,41 +305,40 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
     int padding = ((header >> 9) & 0x1);
     int channelIndex = ((header >> 6) & 0x3); // 00: Stereo, 01: Joint stereo (Stereo), 10: Dual channel (Stereo), 11: Single channel (Mono)
     details.numChannels = Optional.ofNullable(MP3_MODE_CHANNEL_MAP.get(channelIndex))
-        .orElseThrow(() -> new MalformedFrameException("Cannot compute channel number"));
+        .orElseThrow(() -> new MalformedFrameException(ais.name, headerLocation, "Cannot compute channel number"));
 
     int bitRateKey = ((header >> 16) & 0x0E) | ((header >> 8) & 0xF0);
     Integer bitRate = MP3_BIT_RATE_MAP.get(bitRateKey);
     if (bitRate == null) { // free
       int bitRateIndex = ((header >> 12) & 0xF);
-      throw new MalformedFrameException("Cannot handle bitrate for index " + Integer.toHexString(bitRateIndex));
+      throw new MalformedFrameException(ais.name, headerLocation, "Cannot handle bitrate for index " + Integer.toHexString(bitRateIndex));
     }
     details.bitRate = bitRate;
 
     Integer sampleRate = Optional.ofNullable(MP3_SAMPLING_RATE_MAP.get(details.version))
         .map(map -> map.get(samplingIndex))
-        .orElseThrow(() -> new MalformedFrameException("Cannot compute sampling rate"));
+        .orElseThrow(() -> new MalformedFrameException(ais.name, headerLocation, "Cannot compute sampling rate"));
     if(sampleRate == null) {
-      throw new MalformedFrameException("Cannot handle sampling for index " + Integer.toHexString(samplingIndex));
+      throw new MalformedFrameException(ais.name, headerLocation, "Cannot handle sampling for index " + Integer.toHexString(samplingIndex));
     }
     details.sampleRate = sampleRate;
 
-    int frameLength;
     switch (details.layer) {
       case MP3_LAYER_I:
-        frameLength = ((12 * bitRate * 1000) / sampleRate + padding) * 4;
+        details.frameLength = ((12 * bitRate * 1000) / sampleRate + padding) * 4;
         details.sampleCount = LAYER_I_SAMPLES_PER_FRAME;
         break;
       case MP3_LAYER_II:
       case MP3_LAYER_III:
-        frameLength = (144 * bitRate * 1000) / sampleRate + padding;
+        details.frameLength = (144 * bitRate * 1000) / sampleRate + padding;
         details.sampleCount = LAYER_II_OR_III_SAMPLES_PER_FRAME;
         break;
       default:
-        throw new MalformedFrameException("Layer 0x00");
+        throw new MalformedFrameException(ais.name, headerLocation, "Layer 0x00");
     }
 
     //No, we're not going to retry and get as much data as possible in case of an EOF
-    ais.skipNBytesBeforeJava12((long)frameLength - 4); // 4 is the header we've already read
+    ais.skipNBytesBeforeJava12((long)details.frameLength - 4); // 4 is the header we've already read
     return details;
   }
 
@@ -379,20 +390,29 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
     return new byte[]{b0, b1, b2, b3};
   }
 
-  private static final class FrameDetails {
-    private int version;
-    private int layer;
-    private int numChannels;
-    private int bitRate;
-    private int sampleRate;
-    private int sampleCount;
+  static final class FrameDetails {
+    int version;
+    int layer;
+    int numChannels;
+    int bitRate;
+    int sampleRate;
+    int sampleCount;
+    int frameLength;
   }
 
-  public static final class Mp3Info implements AudioInfo {
+  public static final class MpegInfo implements AudioInfo {
 
     private final Map<Integer, Long> sampleCounts = new HashMap<>(); // samplingRate => samples
     private final List<AudioIssue> audioIssues = new ArrayList<>(); // location => bytes skipped
     private boolean incomplete;
+
+    private void appendFrame(FrameDetails details) {
+      sampleCounts.compute(details.sampleRate, (sampleRate, sampleCount) -> (sampleCount == null ? 0 : sampleCount) + details.sampleCount);
+    }
+
+    public boolean isEmpty() {
+      return sampleCounts.isEmpty();
+    }
 
     /**
      * Sync errors don't have any effect on this flag
@@ -400,14 +420,6 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
      */
     public boolean isIncomplete() {
       return incomplete;
-    }
-
-    void appendFrame(FrameDetails details) {
-      sampleCounts.compute(details.sampleRate, (sampleRate, sampleCount) -> (sampleCount == null ? 0 : sampleCount) + details.sampleCount);
-    }
-
-    public boolean isEmpty() {
-      return sampleCounts.isEmpty();
     }
 
     @Override
@@ -428,9 +440,10 @@ public class Mp3InfoSupplier implements AudioInfoSupplier<Mp3Info> {
     }
   }
 
-  public static final class MalformedFrameException extends Exception {
-    public MalformedFrameException(String message) {
-      super(message);
+
+  public static final class MalformedFrameException extends AudioFormatException {
+    public MalformedFrameException(String name, long location, String message) {
+      super(name, location, AudioFormat.MP3, message);
     }
   }
 }
