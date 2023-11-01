@@ -14,8 +14,8 @@ import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioInputStream;
 import eu.nonstatic.audio.AudioIssue;
-import eu.nonstatic.audio.StreamInfo;
-import eu.nonstatic.audio.StreamInfoSupplier;
+import eu.nonstatic.audio.AudioInfo;
+import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.wave.WaveInfoSupplier.WaveInfo;
 import java.io.EOFException;
 import java.io.IOException;
@@ -26,7 +26,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class WaveInfoSupplier implements StreamInfoSupplier<WaveInfo> {
+public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
 
   /**
    * https://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
@@ -80,7 +80,7 @@ public class WaveInfoSupplier implements StreamInfoSupplier<WaveInfo> {
   }
 
   @Getter
-  public static final class WaveInfo implements StreamInfo {
+  public static final class WaveInfo implements AudioInfo {
     private final String name;
     private short format;
     private short numChannels;

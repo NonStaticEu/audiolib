@@ -24,8 +24,7 @@ public enum AudioFormat {
   MP3("mp3"),
   MP2("mp2"),
   FLAC("flac"),
-  OGG("ogg", "oga"),
-  XM("xm");
+  OGG("ogg", "oga");
 
   private final List<String> extensions;
 

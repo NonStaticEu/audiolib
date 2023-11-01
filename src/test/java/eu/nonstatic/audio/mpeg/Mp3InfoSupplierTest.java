@@ -47,8 +47,12 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   void should_handle_truncated_file() {
     MpegAudioInfoSupplier infoSupplier = new Mp3AudioInfoSupplier();
     ByteArrayInputStream emptyStream = new ByteArrayInputStream(new byte[]{0, 0, 0, 73, 68, 51, 4}); // leading zeroes for findData
-    EOFException eofe = assertThrows(EOFException.class, () -> infoSupplier.getInfos(emptyStream, MP3_NAME));
-    assertEquals("location: 7", eofe.getMessage());
+    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(emptyStream, MP3_NAME));
+    assertEquals("Cannot retrieve audio infos: /audio/Moog-juno-303-example.mp3", aie.getMessage());
+    List<AudioIssue> issues = aie.getIssues();
+    assertEquals(1, issues.size());
+    assertEquals(Type.EOF, issues.get(0).getType());
+    assertEquals(7, issues.get(0).getLocation());
   }
 
   @Test
@@ -131,7 +135,7 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_give_mp3_infos_on_out_of_synch_eof_file() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_mp3_infos_on_out_of_synch_incomplete_file() throws AudioFormatException, IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = MP3_URL.openStream()) {
       bytes = is.readAllBytes();
