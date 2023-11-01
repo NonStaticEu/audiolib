@@ -7,7 +7,7 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.mpeg;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,9 +16,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioInputStream;
+import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
-import eu.nonstatic.audio.MpegAudioInfoSupplier.FrameDetails;
-import eu.nonstatic.audio.MpegAudioInfoSupplier.MpegInfo;
+import eu.nonstatic.audio.AudioTestBase;
+import eu.nonstatic.audio.FaultyStream;
+import eu.nonstatic.audio.mpeg.MpegAudioInfoSupplier.FrameDetails;
+import eu.nonstatic.audio.mpeg.MpegAudioInfoSupplier.MpegInfo;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -28,7 +34,7 @@ import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class Mp3AudioInfoSupplierTest implements AudioTestBase {
+class Mp3InfoSupplierTest implements AudioTestBase {
 
   @Test
   void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
@@ -174,10 +180,10 @@ class Mp3AudioInfoSupplierTest implements AudioTestBase {
     int header1 = bb.getInt(faultLocation);
     bb.putInt(faultLocation, header1 & 0xfff9ffff); //so layer is 00, but that has an impact on bitrate calculation, so that''s the type of error we'll get.
 
-    MpegInfo infos = infoSupplier.getInfos(new ByteArrayInputStream(bytes), MP3_NAME + ":malformedframe");
-    assertFalse(infos.isIncomplete());
+    MpegInfo info = infoSupplier.getInfos(new ByteArrayInputStream(bytes), MP3_NAME + ":malformedframe");
+    assertFalse(info.isIncomplete());
 
-    List<AudioIssue> issues = infos.getIssues();
+    List<AudioIssue> issues = info.getIssues();
     assertTrue(issues.size() >= 2); // there should be a FRAME one and a SYNC one after, maybe more if this was not an actual frame
     AudioIssue issue1 = issues.get(0);
     assertEquals(Type.FORMAT, issue1.getType());
