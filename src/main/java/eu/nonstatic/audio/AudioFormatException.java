@@ -11,6 +11,9 @@ package eu.nonstatic.audio;
 
 import lombok.Getter;
 
+/**
+ * To be thrown when the file format is not compliant
+ */
 @Getter
 public class AudioFormatException extends AudioException {
 

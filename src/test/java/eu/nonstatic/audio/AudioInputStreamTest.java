@@ -92,7 +92,7 @@ class AudioInputStreamTest {
   @Test
   void should_skipNbytes() throws IOException {
     try(AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(INTEGRAL_DATA), "data")) {
-      ais.skipNBytesBeforeJava12(4);
+      ais.skipNBytesBackport(4);
       assertEquals(0xDECAFACE, ais.read32bitBE());
     }
   }
@@ -132,7 +132,7 @@ class AudioInputStreamTest {
 
       // skip N
       ais.mark(5);
-      ais.skipNBytesBeforeJava12(2);
+      ais.skipNBytesBackport(2);
       assertEquals(6, ais.location());
       ais.reset();
       assertEquals(4, ais.location());

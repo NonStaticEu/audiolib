@@ -7,12 +7,15 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.mpeg;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import eu.nonstatic.audio.MpegAudioInfoSupplier.MpegInfo;
+import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioTestBase;
+import eu.nonstatic.audio.mpeg.MpegAudioInfoSupplier.MpegInfo;
 import java.io.IOException;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;

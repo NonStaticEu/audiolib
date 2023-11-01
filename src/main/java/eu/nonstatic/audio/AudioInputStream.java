@@ -56,6 +56,10 @@ public class AudioInputStream extends BufferedInputStream {
     return ByteBuffer.wrap(readNBytesStrict(4)).order(LITTLE_ENDIAN).getInt();
   }
 
+  public long read64bitLE() throws IOException {
+    return ByteBuffer.wrap(readNBytesStrict(8)).order(LITTLE_ENDIAN).getLong();
+  }
+
   public short read16bitBE() throws IOException {
     return ByteBuffer.wrap(readNBytesStrict(2)).order(BIG_ENDIAN).getShort();
   }
@@ -103,7 +107,7 @@ public class AudioInputStream extends BufferedInputStream {
    * and the end of the stream is reached.
    * Instead, an {@link EOFException} is thrown, to be handled as every other {@link IOException}
    */
-  protected byte[] readNBytesStrict(int len) throws IOException {
+  public byte[] readNBytesStrict(int len) throws IOException {
     byte[] bytes = readNBytes(len);
     if(bytes.length != len) {
       throw new EOFException("location: " + location);
@@ -112,7 +116,12 @@ public class AudioInputStream extends BufferedInputStream {
     }
   }
 
-  void skipNBytesBeforeJava12(long n) throws IOException {
+  /**
+   * This is a skipNBytes implementation for streams compiled before Java 12
+   * @param n
+   * @throws IOException
+   */
+  public void skipNBytesBackport(long n) throws IOException {
     while (n > 0) {
       long ns = skip(n);
       if (ns > 0 && ns <= n) {

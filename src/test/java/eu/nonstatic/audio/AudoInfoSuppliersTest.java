@@ -12,9 +12,14 @@ package eu.nonstatic.audio;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import eu.nonstatic.audio.aiff.AiffInfoSupplier;
+import eu.nonstatic.audio.flac.FlacInfoSupplier;
+import eu.nonstatic.audio.mpeg.Mp2AudioInfoSupplier;
+import eu.nonstatic.audio.mpeg.Mp3AudioInfoSupplier;
+import eu.nonstatic.audio.wave.WaveInfoSupplier;
 import org.junit.jupiter.api.Test;
 
-class AudioInfoSuppliersTest {
+class AudoInfoSuppliersTest {
 
   @Test
   void should_select_supplier_by_filename() {

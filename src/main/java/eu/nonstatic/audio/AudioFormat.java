@@ -23,7 +23,8 @@ public enum AudioFormat {
   WAVE("wav", "wave"),
   MP3("mp3"),
   MP2("mp2"),
-  FLAC("flac");
+  FLAC("flac"),
+  OGG("ogg", "oga");
 
   private final List<String> extensions;
 

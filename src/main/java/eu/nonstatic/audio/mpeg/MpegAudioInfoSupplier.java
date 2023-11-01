@@ -7,11 +7,18 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.mpeg;
 
 import static java.util.Map.entry;
 
-import eu.nonstatic.audio.MpegAudioInfoSupplier.MpegInfo;
+import eu.nonstatic.audio.AudioFormat;
+import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfo;
+import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioInfoSupplier;
+import eu.nonstatic.audio.AudioInputStream;
+import eu.nonstatic.audio.AudioIssue;
+import eu.nonstatic.audio.mpeg.MpegAudioInfoSupplier.MpegInfo;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -187,24 +194,24 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
    * We're assuming there is no weird sync/alignment issue
    */
   public MpegInfo getInfos(InputStream is, String name) throws AudioFormatException, AudioInfoException, IOException {
-    MpegInfo infos = new MpegInfo();
 
-    // Let it fail as an IOException/EOFException as long as we haven't reached frames
     AudioInputStream ais = new AudioInputStream(is, name);
-    findData(ais);
-    skipID3v2(ais);
-
     try {
-      long framesLocation = ais.location();
-      while(!readFramesWithResync(ais, infos));
-
-      if (infos.isEmpty()) {
-        throw new AudioFormatException(name, framesLocation, format, "Could not find a single frame");
-      }
+      findData(ais);
+      skipID3v2(ais);
     } catch (EOFException e) {
       throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
     }
-    return infos;
+    // Let it fail as an IOException as long as we haven't reached frames
+
+    long framesLocation = ais.location();
+    MpegInfo info = new MpegInfo(name);
+    while(!readFramesWithResync(ais, info));
+
+    if (info.isEmpty()) {
+      throw new AudioFormatException(name, framesLocation, format, "Could not find a single frame");
+    }
+    return info;
   }
 
   private void findData(AudioInputStream ais) throws IOException {
@@ -227,17 +234,17 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
       int size = read32bitSynchSafe(ais);
       // (flags & 0x2) != 0; // extended
       boolean footer = (flags & 0x8) != 0;
-      ais.skipNBytesBeforeJava12((long)size + (footer ? 10 : 0));
+      ais.skipNBytesBackport((long)size + (footer ? 10 : 0));
     } else { // no ID3v2
       ais.reset();
     }
   }
 
-  private boolean readFramesWithResync(AudioInputStream ais, MpegInfo infos) throws IOException {
+  private boolean readFramesWithResync(AudioInputStream ais, MpegInfo info) throws IOException {
     boolean stop = false;
 
     try {
-      readFrames(ais, infos); // reads till a frame is malformed, or EOF
+      readFrames(ais, info); // reads till a frame is malformed, or EOF
 
       if (isEndOfFileAhead(ais)) {
         stop = true;
@@ -245,8 +252,8 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
         long locationBeforeResync = ais.location();
         int skipped = resync(ais);
         if(skipped >= 0) {
-          infos.addIssue(AudioIssue.sync(locationBeforeResync, skipped));
-          log.info("Managed to resync after skipping {} bytes", skipped);
+          info.addIssue(AudioIssue.sync(locationBeforeResync, skipped));
+          log.info("Resync after skipping {} bytes", skipped);
         } else {
           stop = true;
         }
@@ -254,24 +261,24 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     } catch(EOFException e) {
       stop = true;
 
-      log.warn("End of file reached, incomplete frame: {}", ais.name);
-      infos.incomplete = true;
-      infos.addIssue(AudioIssue.eof(ais.location(), e));
+      log.warn("End of file reached, incomplete frame: {}", ais.getName());
+      info.incomplete = true;
+      info.addIssue(AudioIssue.eof(ais.location(), e));
     }
 
     return stop;
   }
 
-  private void readFrames(AudioInputStream ais, MpegInfo infos) throws IOException {
+  private void readFrames(AudioInputStream ais, MpegInfo info) throws IOException {
     try {
       FrameDetails frameDetails;
       while ((frameDetails = readFrame(ais)) != null) {
-        infos.appendFrame(frameDetails);
+        info.appendFrame(frameDetails);
       }
     } catch(MalformedFrameException e) {
       long location = e.getLocation();
       log.warn("Frame is malformed at {}, will seek till next one", location);
-      infos.addIssue(AudioIssue.format(location, e));
+      info.addIssue(AudioIssue.format(location, e));
     }
   }
 
@@ -305,21 +312,21 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     int padding = ((header >> 9) & 0x1);
     int channelIndex = ((header >> 6) & 0x3); // 00: Stereo, 01: Joint stereo (Stereo), 10: Dual channel (Stereo), 11: Single channel (Mono)
     details.numChannels = Optional.ofNullable(MPEG_MODE_CHANNEL_MAP.get(channelIndex))
-        .orElseThrow(() -> new MalformedFrameException(ais.name, headerLocation, "Cannot compute channel number"));
+        .orElseThrow(() -> new MalformedFrameException(ais.getName(), headerLocation, "Cannot compute channel number"));
 
     int bitRateKey = ((header >> 16) & 0x0E) | ((header >> 8) & 0xF0);
     Integer bitRate = MPEG_BIT_RATE_MAP.get(bitRateKey);
     if (bitRate == null) { // free
       int bitRateIndex = ((header >> 12) & 0xF);
-      throw new MalformedFrameException(ais.name, headerLocation, "Cannot handle bitrate for index " + Integer.toHexString(bitRateIndex));
+      throw new MalformedFrameException(ais.getName(), headerLocation, "Cannot handle bitrate for index " + Integer.toHexString(bitRateIndex));
     }
     details.bitRate = bitRate;
 
     Integer sampleRate = Optional.ofNullable(MPEG_SAMPLING_RATE_MAP.get(details.version))
         .map(map -> map.get(samplingIndex))
-        .orElseThrow(() -> new MalformedFrameException(ais.name, headerLocation, "Cannot compute sampling rate"));
+        .orElseThrow(() -> new MalformedFrameException(ais.getName(), headerLocation, "Cannot compute sampling rate"));
     if(sampleRate == null) {
-      throw new MalformedFrameException(ais.name, headerLocation, "Cannot handle sampling for index " + Integer.toHexString(samplingIndex));
+      throw new MalformedFrameException(ais.getName(), headerLocation, "Cannot handle sampling for index " + Integer.toHexString(samplingIndex));
     }
     details.sampleRate = sampleRate;
 
@@ -334,11 +341,11 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
         details.sampleCount = LAYER_II_OR_III_SAMPLES_PER_FRAME;
         break;
       default:
-        throw new MalformedFrameException(ais.name, headerLocation, "Layer 0x00");
+        throw new MalformedFrameException(ais.getName(), headerLocation, "Layer 0x00");
     }
 
     //No, we're not going to retry and get as much data as possible in case of an EOF
-    ais.skipNBytesBeforeJava12((long)details.frameLength - 4); // 4 is the header we've already read
+    ais.skipNBytesBackport((long)details.frameLength - 4); // 4 is the header we've already read
     return details;
   }
 
@@ -354,7 +361,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
       if (isMpegFrame(header)) {
         return skipped;
       } else {
-        ais.skipNBytesBeforeJava12(1);
+        ais.skipNBytesBackport(1);
       }
     }
   }
@@ -405,10 +412,15 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   }
 
   public static final class MpegInfo implements AudioInfo {
-
+    @Getter
+    private final String name;
     private final Map<Integer, Long> sampleCounts = new HashMap<>(); // samplingRate => samples
     private final List<AudioIssue> audioIssues = new ArrayList<>(); // location => bytes skipped
     private boolean incomplete;
+
+    public MpegInfo(String name) {
+      this.name = name;
+    }
 
     private void appendFrame(FrameDetails details) {
       sampleCounts.compute(details.sampleRate, (sampleRate, sampleCount) -> (sampleCount == null ? 0 : sampleCount) + details.sampleCount);
@@ -428,11 +440,11 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
 
     @Override
     public Duration getDuration() {
-      double duration = 0.0;
+      double seconds = 0.0;
       for (Entry<Integer, Long> entry : sampleCounts.entrySet()) {
-        duration += entry.getValue() / (double) entry.getKey();
+        seconds += entry.getValue() / (double) entry.getKey();
       }
-      return Duration.ofNanos(Math.round(duration * 1_000_000_000.0));
+      return AudioInfo.secondsToDuration(seconds);
     }
 
     public List<AudioIssue> getIssues() {

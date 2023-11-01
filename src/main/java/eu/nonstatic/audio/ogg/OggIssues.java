@@ -7,20 +7,28 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.ogg;
 
-import java.time.Duration;
+import eu.nonstatic.audio.AudioIssue;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import lombok.NonNull;
 
-public interface AudioInfo {
-  int SECONDS_PER_MINUTE = 60;
-  long NANOS_PER_SECOND = 1_000_000_000L;
+public abstract class OggIssues {
+  protected final List<AudioIssue> audioIssues = new ArrayList<>(); // location => bytes skipped
 
-  String getName();
-  Duration getDuration();
-  List<AudioIssue> getIssues();
+  public List<AudioIssue> getIssues() {
+    return Collections.unmodifiableList(audioIssues);
+  }
 
-  static Duration secondsToDuration(double seconds) {
-    return Duration.ofNanos(Math.round(seconds * NANOS_PER_SECOND));
+  public void addIssue(@NonNull AudioIssue issue) {
+    audioIssues.add(issue);
+  }
+
+
+  protected final void into(OggIssues oggIssues) {
+    oggIssues.audioIssues.clear();
+    oggIssues.audioIssues.addAll(audioIssues);
   }
 }
