@@ -12,7 +12,7 @@ package eu.nonstatic.audio;
 import java.time.Duration;
 import java.util.List;
 
-public interface StreamInfo {
+public interface AudioInfo {
       int SECONDS_PER_MINUTE = 60;
       long NANOS_PER_SECOND = 1_000_000_000L;
 

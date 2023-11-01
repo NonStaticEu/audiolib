@@ -16,8 +16,8 @@ import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioInputStream;
 import eu.nonstatic.audio.AudioIssue;
-import eu.nonstatic.audio.StreamInfo;
-import eu.nonstatic.audio.StreamInfoSupplier;
+import eu.nonstatic.audio.AudioInfo;
+import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.mpeg.MpegAudioInfoSupplier.MpegInfo;
 import java.io.EOFException;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
-public abstract class MpegAudioInfoSupplier implements StreamInfoSupplier<MpegInfo> {
+public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInfo> {
 
   private static final int MPEG_VERSION_2_5 = 0;
   private static final int MPEG_VERSION_2 = 2;
@@ -411,7 +411,7 @@ public abstract class MpegAudioInfoSupplier implements StreamInfoSupplier<MpegIn
     int frameLength;
   }
 
-  public static final class MpegInfo implements StreamInfo {
+  public static final class MpegInfo implements AudioInfo {
     @Getter
     private final String name;
     private final Map<Integer, Long> sampleCounts = new HashMap<>(); // samplingRate => samples
@@ -444,7 +444,7 @@ public abstract class MpegAudioInfoSupplier implements StreamInfoSupplier<MpegIn
       for (Entry<Integer, Long> entry : sampleCounts.entrySet()) {
         seconds += entry.getValue() / (double) entry.getKey();
       }
-      return StreamInfo.secondsToDuration(seconds);
+      return AudioInfo.secondsToDuration(seconds);
     }
 
     public List<AudioIssue> getIssues() {

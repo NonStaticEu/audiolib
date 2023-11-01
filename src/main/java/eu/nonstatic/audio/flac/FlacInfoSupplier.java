@@ -14,8 +14,8 @@ import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioInputStream;
 import eu.nonstatic.audio.AudioIssue;
-import eu.nonstatic.audio.StreamInfo;
-import eu.nonstatic.audio.StreamInfoSupplier;
+import eu.nonstatic.audio.AudioInfo;
+import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.flac.FlacInfoSupplier.FlacInfo;
 import java.io.EOFException;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class FlacInfoSupplier implements StreamInfoSupplier<FlacInfo> {
+public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
 
   private static final int STREAMINFO_BLOCK_TYPE = 0;
 
@@ -80,7 +80,7 @@ public class FlacInfoSupplier implements StreamInfoSupplier<FlacInfo> {
 
 
   @Getter @Builder
-  public static class FlacInfo implements StreamInfo {
+  public static class FlacInfo implements AudioInfo {
     private final String name;
     private final int numChannels;
     private final int frameRate;

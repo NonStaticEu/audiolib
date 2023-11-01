@@ -14,8 +14,8 @@ import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioInputStream;
 import eu.nonstatic.audio.AudioIssue;
-import eu.nonstatic.audio.StreamInfo;
-import eu.nonstatic.audio.StreamInfoSupplier;
+import eu.nonstatic.audio.AudioInfo;
+import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.aiff.AiffInfoSupplier.AiffInfo;
 import java.io.EOFException;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AiffInfoSupplier implements StreamInfoSupplier<AiffInfo> {
+public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
 
   /**
    * https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/Docs/AIFF-1.3.pdf
@@ -83,7 +83,7 @@ public class AiffInfoSupplier implements StreamInfoSupplier<AiffInfo> {
   }
 
   @Getter @Builder
-  public static class AiffInfo implements StreamInfo {
+  public static class AiffInfo implements AudioInfo {
     private final String name;
     private short numChannels;
     private double frameRate;
