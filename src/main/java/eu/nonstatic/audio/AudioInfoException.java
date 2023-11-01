@@ -13,6 +13,10 @@ import java.util.Collections;
 import java.util.List;
 import lombok.NonNull;
 
+/**
+ * To be thrown when file info cannot be extracted (eg: EOF)
+ * the issues list may be used as a summary of issues
+ */
 public class AudioInfoException extends AudioException {
 
   private final List<AudioIssue> issues;
