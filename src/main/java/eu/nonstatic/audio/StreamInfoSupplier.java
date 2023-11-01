@@ -15,7 +15,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public interface AudioInfoSupplier<I extends AudioInfo> {
+public interface StreamInfoSupplier<I extends StreamInfo> {
 
   default I getInfos(File file) throws AudioFormatException, AudioInfoException, IOException {
     return getInfos(file.toPath());

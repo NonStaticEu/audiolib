@@ -7,9 +7,16 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.flac;
 
-import eu.nonstatic.audio.FlacInfoSupplier.FlacInfo;
+import eu.nonstatic.audio.AudioFormat;
+import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioInputStream;
+import eu.nonstatic.audio.AudioIssue;
+import eu.nonstatic.audio.StreamInfo;
+import eu.nonstatic.audio.StreamInfoSupplier;
+import eu.nonstatic.audio.flac.FlacInfoSupplier.FlacInfo;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +27,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
+public class FlacInfoSupplier implements StreamInfoSupplier<FlacInfo> {
 
   private static final int STREAMINFO_BLOCK_TYPE = 0;
 
@@ -40,7 +47,7 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
   private void checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
     long location = ais.location();
     if (!"fLaC".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.name, location, AudioFormat.FLAC, "No FLAC header");
+      throw new AudioFormatException(ais.getName(), location, AudioFormat.FLAC, "No FLAC header");
     }
   }
 
@@ -48,8 +55,8 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
     long location = ais.location();
     int blockType = ais.readStrict() & 0x7;
     if (blockType == STREAMINFO_BLOCK_TYPE) {
-      ais.skipNBytesBeforeJava12(3); // length
-      ais.skipNBytesBeforeJava12(10);
+      ais.skipNBytesBackport(3); // length
+      ais.skipNBytesBackport(10);
       long samplingInfo = ais.read64bitBE();
 
       int samplingRate = (int) (samplingInfo >> 44);
@@ -58,13 +65,14 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
       long totalSamples = (samplingInfo & 0xFFFFFFFFFL);
 
       return FlacInfo.builder()
+          .name(ais.getName())
           .frameRate(samplingRate)
           .numChannels(numChannels)
           .frameSize(bitsPerSample)
           .numFrames(totalSamples)
           .build();
     } else {
-      throw new AudioFormatException(ais.name, location, AudioFormat.FLAC, "STREAMINFO block not found");
+      throw new AudioFormatException(ais.getName(), location, AudioFormat.FLAC, "STREAMINFO block not found");
     }
   }
 
@@ -72,11 +80,12 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
 
 
   @Getter @Builder
-  public static class FlacInfo implements AudioInfo {
-    private int numChannels;
-    private int frameRate;
-    private int frameSize; // bits
-    private long numFrames;
+  public static class FlacInfo implements StreamInfo {
+    private final String name;
+    private final int numChannels;
+    private final int frameRate;
+    private final int frameSize; // bits
+    private final long numFrames;
 
     @Override
     public Duration getDuration() {

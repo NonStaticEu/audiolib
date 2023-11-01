@@ -7,9 +7,16 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.wave;
 
-import eu.nonstatic.audio.WaveInfoSupplier.WaveInfo;
+import eu.nonstatic.audio.AudioFormat;
+import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioInputStream;
+import eu.nonstatic.audio.AudioIssue;
+import eu.nonstatic.audio.StreamInfo;
+import eu.nonstatic.audio.StreamInfoSupplier;
+import eu.nonstatic.audio.wave.WaveInfoSupplier.WaveInfo;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +26,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
+public class WaveInfoSupplier implements StreamInfoSupplier<WaveInfo> {
 
   /**
    * https://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
@@ -37,19 +44,19 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
   private int checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
     long location = ais.location();
     if (!"RIFF".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.name, location, AudioFormat.WAVE, "No RIFF header");
+      throw new AudioFormatException(ais.getName(), location, AudioFormat.WAVE, "No RIFF header");
     }
 
     location = ais.location();
     int nbChunks = ais.read32bitLE() - 4;
     if (!"WAVE".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.name, location, AudioFormat.WAVE, "No WAVE id");
+      throw new AudioFormatException(ais.getName(), location, AudioFormat.WAVE, "No WAVE id");
     }
     return nbChunks;
   }
 
   private WaveInfo readDetails(AudioInputStream ais, int nbChunks) throws AudioFormatException, IOException {
-    WaveInfo info = new WaveInfo();
+    WaveInfo info = new WaveInfo(ais.getName());
     for (int c = 0; c < nbChunks; c++) {
       String ckName = ais.readString(4);
       int ckSize = ais.read32bitLE();
@@ -58,27 +65,32 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
         info.format = ais.read16bitLE(); // format
         info.numChannels = ais.read16bitLE(); // num channels
         info.frameRate = ais.read32bitLE();
-        ais.skipNBytesBeforeJava12(4); // data rate
+        ais.skipNBytesBackport(4); // data rate
         info.frameSize = ais.read16bitLE(); //  numChannels * bitsPerSample/8
-        ais.skipNBytesBeforeJava12(2); // bits per sample
-        ais.skipNBytesBeforeJava12((long)ckSize - 16);
+        ais.skipNBytesBackport(2); // bits per sample
+        ais.skipNBytesBackport((long)ckSize - 16);
       } else if ("data".equals(ckName)) {
         info.audioSize = ckSize;
         return info;
       } else {
-        ais.skipNBytesBeforeJava12(ckSize);
+        ais.skipNBytesBackport(ckSize);
       }
     }
-    throw new AudioFormatException(ais.name, ais.location(), AudioFormat.WAVE, "No data chunk");
+    throw new AudioFormatException(ais.getName(), ais.location(), AudioFormat.WAVE, "No data chunk");
   }
 
   @Getter
-  public static final class WaveInfo implements AudioInfo {
+  public static final class WaveInfo implements StreamInfo {
+    private final String name;
     private short format;
     private short numChannels;
     private int frameRate;
     private short frameSize; // bytes
     private int audioSize;
+
+    public WaveInfo(String name) {
+      this.name = name;
+    }
 
     @Override
     public Duration getDuration() {

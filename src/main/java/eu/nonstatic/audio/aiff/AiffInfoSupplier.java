@@ -7,9 +7,16 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.aiff;
 
-import eu.nonstatic.audio.AiffInfoSupplier.AiffInfo;
+import eu.nonstatic.audio.AudioFormat;
+import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioInputStream;
+import eu.nonstatic.audio.AudioIssue;
+import eu.nonstatic.audio.StreamInfo;
+import eu.nonstatic.audio.StreamInfoSupplier;
+import eu.nonstatic.audio.aiff.AiffInfoSupplier.AiffInfo;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +27,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
+public class AiffInfoSupplier implements StreamInfoSupplier<AiffInfo> {
 
   /**
    * https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/Docs/AIFF-1.3.pdf
@@ -38,19 +45,20 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
   private void checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
     long location = ais.location();
     if (!"FORM".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.name, location, AudioFormat.AIFF, "No AIFF FORM header");
+      throw new AudioFormatException(ais.getName(), location, AudioFormat.AIFF, "No AIFF FORM header");
     }
 
     location = ais.location();
     ais.read32bitBE(); // total size
     if (!"AIFF".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.name, location, AudioFormat.AIFF, "No AIFF id");
+      throw new AudioFormatException(ais.getName(), location, AudioFormat.AIFF, "No AIFF id");
     }
   }
 
   private AiffInfo readInfos(AudioInputStream ais) throws AudioFormatException, IOException {
     findChunk(ais, "COMM");
     return AiffInfo.builder()
+        .name(ais.getName())
         .numChannels(ais.read16bitBE())
         .numFrames(ais.read32bitBE())
         .frameSize(ais.read16bitBE())
@@ -66,16 +74,17 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
         if (name.equals(ckName)) {
           break;
         } else {
-          ais.skipNBytesBeforeJava12(ckSize);
+          ais.skipNBytesBackport(ckSize);
         }
       }
     } catch(EOFException e) {
-      throw new AudioFormatException(ais.name, ais.location(), AudioFormat.AIFF, "Chunk " + name + " not found", e);
+      throw new AudioFormatException(ais.getName(), ais.location(), AudioFormat.AIFF, "Chunk " + name + " not found", e);
     }
   }
 
   @Getter @Builder
-  public static class AiffInfo implements AudioInfo {
+  public static class AiffInfo implements StreamInfo {
+    private final String name;
     private short numChannels;
     private double frameRate;
     private int frameSize; // bits

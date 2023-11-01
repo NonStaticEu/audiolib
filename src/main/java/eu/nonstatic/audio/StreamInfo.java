@@ -9,8 +9,18 @@
  */
 package eu.nonstatic.audio;
 
-public class Mp3AudioInfoSupplier extends MpegAudioInfoSupplier {
-  public Mp3AudioInfoSupplier() {
-    super(AudioFormat.MP3);
-  }
+import java.time.Duration;
+import java.util.List;
+
+public interface StreamInfo {
+      int SECONDS_PER_MINUTE = 60;
+      long NANOS_PER_SECOND = 1_000_000_000L;
+
+      String getName();
+      Duration getDuration();
+      List<AudioIssue> getIssues();
+
+      static Duration secondsToDuration(double seconds) {
+            return Duration.ofNanos(Math.round(seconds * NANOS_PER_SECOND));
+      }
 }

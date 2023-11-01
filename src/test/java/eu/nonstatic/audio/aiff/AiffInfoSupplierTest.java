@@ -7,14 +7,19 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.aiff;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import eu.nonstatic.audio.AiffInfoSupplier.AiffInfo;
+import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
+import eu.nonstatic.audio.AudioTestBase;
+import eu.nonstatic.audio.FaultyStream;
+import eu.nonstatic.audio.aiff.AiffInfoSupplier.AiffInfo;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.File;
@@ -143,7 +148,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
       .putShort((short) 0)
       .putInt(0);
 
-    AiffInfo infos = infoSupplier.getInfos(new ByteArrayInputStream(bb.array()), AIFF_NAME);
-    assertEquals(2, infos.getNumChannels());
+    AiffInfo info = infoSupplier.getInfos(new ByteArrayInputStream(bb.array()), AIFF_NAME);
+    assertEquals(2, info.getNumChannels());
   }
 }
