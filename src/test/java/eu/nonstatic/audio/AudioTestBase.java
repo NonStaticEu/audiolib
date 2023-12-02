@@ -25,11 +25,13 @@ public interface AudioTestBase {
 
   String AIFF_NAME = "/audio/Arpeggio.aiff";
   String WAVE_NAME = "/audio/Amplitudenmodulation.wav";
+  String MP2_NAME = "/audio/Moog-juno-303-example.mp2";
   String MP3_NAME = "/audio/Moog-juno-303-example.mp3";
   String FLAC_NAME = "/audio/Filtered_envelope_sawtooth_moog.flac";
 
   URL AIFF_URL = AudioTestBase.class.getResource(AIFF_NAME);
   URL WAVE_URL = AudioTestBase.class.getResource(WAVE_NAME);
+  URL MP2_URL = AudioTestBase.class.getResource(MP2_NAME);
   URL MP3_URL = AudioTestBase.class.getResource(MP3_NAME);
   URL FLAC_URL = AudioTestBase.class.getResource(FLAC_NAME);
 

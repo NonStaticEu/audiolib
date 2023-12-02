@@ -31,13 +31,13 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInfo> {
 
-  private static final int MP3_VERSION_2_5 = 0;
-  private static final int MP3_VERSION_2 = 2;
-  private static final int MP3_VERSION_1 = 3;
+  private static final int MPEG_VERSION_2_5 = 0;
+  private static final int MPEG_VERSION_2 = 2;
+  private static final int MPEG_VERSION_1 = 3;
 
-  private static final int MP3_LAYER_I = 3;
-  private static final int MP3_LAYER_II = 2;
-  private static final int MP3_LAYER_III = 1;
+  private static final int MPEG_LAYER_I = 3;
+  private static final int MPEG_LAYER_II = 2;
+  private static final int MPEG_LAYER_III = 1;
 
   private static final int MODE_STEREO = 0;
   private static final int MODE_JOINT_STEREO = 1;
@@ -45,7 +45,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   private static final int MODE_MONO = 3;
 
   // pretty much the same as https://bitbucket.org/ijabz/jaudiotagger/src/master/src/org/jaudiotagger/audio/mp3/MPEGFrameHeader.java
-  private static final Map<Integer, Integer> MP3_BIT_RATE_MAP = Map.ofEntries(
+  private static final Map<Integer, Integer> MPEG_BIT_RATE_MAP = Map.ofEntries(
       // MPEG-1, Layer I (E)
       entry(0x1E, 32),
       entry(0x2E, 64),
@@ -138,29 +138,29 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
       entry(0xE2, 160)
   );
 
-  private static final Map<Integer, Integer> MP3_SAMPLING_V1_MAP = Map.of(
+  private static final Map<Integer, Integer> MPEG_SAMPLING_V1_MAP = Map.of(
       0, 44100,
       1, 48000,
       2, 32000
   );
-  private static final Map<Integer, Integer> MP3_SAMPLING_V2_MAP = Map.of(
+  private static final Map<Integer, Integer> MPEG_SAMPLING_V2_MAP = Map.of(
       0, 22050,
       1, 24000,
       2, 16000
   );
-  private static final Map<Integer, Integer> MP3_SAMPLING_V25_MAP = Map.of(
+  private static final Map<Integer, Integer> MPEG_SAMPLING_V25_MAP = Map.of(
       0, 11025,
       1, 12000,
       2, 8000
   );
 
-  private static final Map<Integer, Map<Integer, Integer>> MP3_SAMPLING_RATE_MAP = Map.of(
-      MP3_VERSION_1, MP3_SAMPLING_V1_MAP,
-      MP3_VERSION_2, MP3_SAMPLING_V2_MAP,
-      MP3_VERSION_2_5, MP3_SAMPLING_V25_MAP
+  private static final Map<Integer, Map<Integer, Integer>> MPEG_SAMPLING_RATE_MAP = Map.of(
+      MPEG_VERSION_1, MPEG_SAMPLING_V1_MAP,
+      MPEG_VERSION_2, MPEG_SAMPLING_V2_MAP,
+      MPEG_VERSION_2_5, MPEG_SAMPLING_V25_MAP
   );
 
-  private static final Map<Integer, Integer> MP3_MODE_CHANNEL_MAP = Map.of(
+  private static final Map<Integer, Integer> MPEG_MODE_CHANNEL_MAP = Map.of(
       MODE_STEREO, 2,
       MODE_JOINT_STEREO, 2,
       MODE_DUAL_CHANNEL, 2,
@@ -171,9 +171,9 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   private static final int LAYER_II_OR_III_SAMPLES_PER_FRAME = 1152;
 
 
-  private AudioFormat format;
+  private final AudioFormat format;
 
-  public MpegAudioInfoSupplier(AudioFormat format) {
+  protected MpegAudioInfoSupplier(AudioFormat format) {
     this.format = format;
   }
 
@@ -219,13 +219,13 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     ais.mark(3);
     String tag2 = ais.readString(3);
     if ("ID3".equals(tag2)) {
-      int minorVersion = ais.readStrict();
-      int revVersion = ais.readStrict();
+      ais.readStrict(); // minorVersion
+      ais.readStrict(); // revVersion
       int flags = ais.readStrict();
       // byte length of the extended header, the padding and the frames after desynchronisation.
       // If a footer is present this equals to (‘total size’ - 20) bytes, otherwise (‘total size’ - 10) bytes.
       int size = read32bitSynchSafe(ais);
-      boolean extended = (flags & 0x2) != 0;
+      // (flags & 0x2) != 0; // extended
       boolean footer = (flags & 0x8) != 0;
       ais.skipNBytesBeforeJava12((long)size + (footer ? 10 : 0));
     } else { // no ID3v2
@@ -287,12 +287,12 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     long headerLocation = ais.location();
     int header;
     try {
-      header = ais.read32bitBE();
+      header = readHeader(ais);
+      if (!isMpegFrame(header)) {
+        ais.reset();
+        return null;
+      }
     } catch(EOFException e) { // Means we reached the EOF just after the end of the previous frame. Our job is done.
-      return null;
-    }
-    if (!isMp3Frame(header)) {
-      ais.reset();
       return null;
     }
 
@@ -300,22 +300,22 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
 
     details.version = (header >> 19) & 0x3; // 00: MPEG Version 2.5, 01: reserved, 10: MPEG Version 2 (ISO/IEC 13818-3), 11: MPEG Version 1 (ISO/IEC 11172-3)
     details.layer = (header >> 17) & 0x3; // 00: reserved, 01: Layer III, 10: Layer II, 11: Layer I
-    boolean protection = ((header >> 16) & 0x1) == 0;
+    // ((header >> 16) & 0x1) == 0; // protection
     int samplingIndex = ((header >> 10) & 0x3);
     int padding = ((header >> 9) & 0x1);
     int channelIndex = ((header >> 6) & 0x3); // 00: Stereo, 01: Joint stereo (Stereo), 10: Dual channel (Stereo), 11: Single channel (Mono)
-    details.numChannels = Optional.ofNullable(MP3_MODE_CHANNEL_MAP.get(channelIndex))
+    details.numChannels = Optional.ofNullable(MPEG_MODE_CHANNEL_MAP.get(channelIndex))
         .orElseThrow(() -> new MalformedFrameException(ais.name, headerLocation, "Cannot compute channel number"));
 
     int bitRateKey = ((header >> 16) & 0x0E) | ((header >> 8) & 0xF0);
-    Integer bitRate = MP3_BIT_RATE_MAP.get(bitRateKey);
+    Integer bitRate = MPEG_BIT_RATE_MAP.get(bitRateKey);
     if (bitRate == null) { // free
       int bitRateIndex = ((header >> 12) & 0xF);
       throw new MalformedFrameException(ais.name, headerLocation, "Cannot handle bitrate for index " + Integer.toHexString(bitRateIndex));
     }
     details.bitRate = bitRate;
 
-    Integer sampleRate = Optional.ofNullable(MP3_SAMPLING_RATE_MAP.get(details.version))
+    Integer sampleRate = Optional.ofNullable(MPEG_SAMPLING_RATE_MAP.get(details.version))
         .map(map -> map.get(samplingIndex))
         .orElseThrow(() -> new MalformedFrameException(ais.name, headerLocation, "Cannot compute sampling rate"));
     if(sampleRate == null) {
@@ -324,12 +324,12 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     details.sampleRate = sampleRate;
 
     switch (details.layer) {
-      case MP3_LAYER_I:
+      case MPEG_LAYER_I:
         details.frameLength = ((12 * bitRate * 1000) / sampleRate + padding) * 4;
         details.sampleCount = LAYER_I_SAMPLES_PER_FRAME;
         break;
-      case MP3_LAYER_II:
-      case MP3_LAYER_III:
+      case MPEG_LAYER_II:
+      case MPEG_LAYER_III:
         details.frameLength = (144 * bitRate * 1000) / sampleRate + padding;
         details.sampleCount = LAYER_II_OR_III_SAMPLES_PER_FRAME;
         break;
@@ -342,12 +342,16 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     return details;
   }
 
+  private static int readHeader(AudioInputStream ais) throws IOException {
+    return ais.read32bitBE();
+  }
+
   private int resync(AudioInputStream ais) throws IOException {
     for(int skipped = 0; ; skipped++) {
       ais.mark(4);
-      int header = ais.read32bitBE();
+      int header = readHeader(ais);
       ais.reset();
-      if (isMp3Frame(header)) {
+      if (isMpegFrame(header)) {
         return skipped;
       } else {
         ais.skipNBytesBeforeJava12(1);
@@ -359,7 +363,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   /**
    * Checks if the bits 21-31 are set
    */
-  private static boolean isMp3Frame(int header) {
+  private static boolean isMpegFrame(int header) {
     return (header & 0xFFE00000) == 0xFFE00000;
   }
 
@@ -379,7 +383,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   }
 
   private static int read32bitSynchSafeInt(byte[] bytes) {
-    return (((bytes[0] << 7 | bytes[1]) << 7) | bytes[2]) << 7 | bytes[3];
+    return (((bytes[0] << 7 | (bytes[1]&0xff)) << 7) | (bytes[2]&0xff)) << 7 | (bytes[3]&0xff);
   }
 
   protected static byte[] toSynchSafeBytes(int i) {
@@ -441,9 +445,9 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   }
 
 
-  public static final class MalformedFrameException extends AudioFormatException {
+  public final class MalformedFrameException extends AudioFormatException {
     public MalformedFrameException(String name, long location, String message) {
-      super(name, location, AudioFormat.MP3, message);
+      super(name, location, format, message);
     }
   }
 }
