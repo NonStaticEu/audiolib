@@ -15,6 +15,7 @@ import eu.nonstatic.audio.mpeg.Mp2AudioInfoSupplier;
 import eu.nonstatic.audio.mpeg.Mp3AudioInfoSupplier;
 import eu.nonstatic.audio.ogg.OggInfoSupplier;
 import eu.nonstatic.audio.wave.WaveInfoSupplier;
+import eu.nonstatic.audio.xm.XmInfoSupplier;
 import java.util.EnumMap;
 import lombok.NonNull;
 
@@ -29,6 +30,7 @@ public final class AudioInfoSuppliers {
     AUDIO_INFO_SUPPLIERS.put(AudioFormat.MP2,  new Mp2AudioInfoSupplier());
     AUDIO_INFO_SUPPLIERS.put(AudioFormat.FLAC, new FlacInfoSupplier());
     AUDIO_INFO_SUPPLIERS.put(AudioFormat.OGG, new OggInfoSupplier());
+    AUDIO_INFO_SUPPLIERS.put(AudioFormat.XM, new XmInfoSupplier());
   }
 
   private AudioInfoSuppliers() {}

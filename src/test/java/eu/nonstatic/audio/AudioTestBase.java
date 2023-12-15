@@ -21,6 +21,7 @@ import java.nio.file.StandardCopyOption;
  * https://en.wikipedia.org/wiki/Synthesizer
  * https://commons.wikimedia.org/wiki/File:Amplitudenmodulation.ogg
  * https://en.m.wikipedia.org/wiki/File:Example.ogg
+ * https://modarchive.org/index.php?request=view_by_moduleid&query=149252 (by rez)
  */
 public interface AudioTestBase {
 
@@ -30,6 +31,7 @@ public interface AudioTestBase {
   String MP3_NAME  = "/audio/Moog-juno-303-example.mp3";
   String FLAC_NAME = "/audio/Filtered_envelope_sawtooth_moog.flac";
   String OGG_NAME  = "/audio/Example.ogg";
+  String XM_NAME = "/audio/unreeeal_superhero_3.xm";
 
   URL AIFF_URL = AudioTestBase.class.getResource(AIFF_NAME);
   URL WAVE_URL = AudioTestBase.class.getResource(WAVE_NAME);
@@ -37,6 +39,7 @@ public interface AudioTestBase {
   URL MP3_URL = AudioTestBase.class.getResource(MP3_NAME);
   URL FLAC_URL = AudioTestBase.class.getResource(FLAC_NAME);
   URL OGG_URL = AudioTestBase.class.getResource(OGG_NAME);
+  URL XM_URL = AudioTestBase.class.getResource(XM_NAME);
 
 
   static Path copyFileContents(URL url, Path file) throws IOException {
