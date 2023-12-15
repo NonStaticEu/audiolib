@@ -193,7 +193,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
    * https://en.wikipedia.org/wiki/APE_tag
    * We're assuming there is no weird sync/alignment issue
    */
-  public MpegInfo getInfos(InputStream is, String name) throws AudioFormatException, AudioInfoException, IOException {
+  public MpegInfo getInfos(InputStream is, String name) throws AudioInfoException, IOException {
 
     AudioInputStream ais = new AudioInputStream(is, name);
     try {
@@ -209,7 +209,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     while(!readFramesWithResync(ais, info));
 
     if (info.isEmpty()) {
-      throw new AudioFormatException(name, framesLocation, format, "Could not find a single frame");
+      throw new AudioInfoException(name, AudioIssue.format(new AudioFormatException(name, framesLocation, format, "Could not find a single frame")));
     }
     return info;
   }
@@ -276,9 +276,8 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
         info.appendFrame(frameDetails);
       }
     } catch(MalformedFrameException e) {
-      long location = e.getLocation();
-      log.warn("Frame is malformed at {}, will seek till next one", location);
-      info.addIssue(AudioIssue.format(location, e));
+      log.warn("Frame is malformed at {}, will seek till next one", e.getLocation());
+      info.addIssue(AudioIssue.format(e));
     }
   }
 

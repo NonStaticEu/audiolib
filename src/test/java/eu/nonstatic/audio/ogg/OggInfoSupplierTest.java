@@ -51,10 +51,11 @@ class OggInfoSupplierTest implements AudioTestBase {
     }
 
     try(ByteArrayInputStream incompleteStream = new ByteArrayInputStream(bytes, 0, 500)) {
-      AudioFormatException e = assertThrows(AudioFormatException.class,
+      AudioInfoException aie = assertThrows(AudioInfoException.class,
           () -> new OggInfoSupplier().getInfos(incompleteStream, OGG_NAME));
 
-      assertEquals("Could not find any audio stream containing pages from the 1 found ones at 0: /audio/Example.ogg", e.getMessage());
+      assertEquals(1, aie.getIssues().size());
+      assertEquals("Could not find any audio stream containing pages from the 1 found ones at 0: /audio/Example.ogg", aie.getIssues().get(0).getCause().getMessage());
     }
   }
 

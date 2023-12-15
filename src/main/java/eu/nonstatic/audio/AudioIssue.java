@@ -59,8 +59,8 @@ public class AudioIssue implements Serializable {
     );
   }
 
-  public static AudioIssue format(long location, @NonNull AudioFormatException exception) {
-    return new AudioIssue(location, Type.FORMAT, exception);
+  public static AudioIssue format(@NonNull AudioFormatException exception) {
+    return new AudioIssue(exception.getLocation(), Type.FORMAT, exception);
   }
 
   public static AudioIssue eof(long location, @NonNull EOFException exception) {

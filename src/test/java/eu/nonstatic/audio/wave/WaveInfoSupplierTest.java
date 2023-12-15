@@ -54,8 +54,9 @@ class WaveInfoSupplierTest implements AudioTestBase {
       .put("WAVE".getBytes());
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
-    assertEquals("No RIFF header at 0: /audio/Amplitudenmodulation.wav", afe.getMessage());
+    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
+    assertEquals(1, aie.getIssues().size());
+    assertEquals("No RIFF header at 0: /audio/Amplitudenmodulation.wav", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test
@@ -66,8 +67,9 @@ class WaveInfoSupplierTest implements AudioTestBase {
       .put("XXXX".getBytes());
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
-    assertEquals("No WAVE id at 4: /audio/Amplitudenmodulation.wav", afe.getMessage());
+    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
+    assertEquals(1, aie.getIssues().size());
+    assertEquals("No WAVE id at 4: /audio/Amplitudenmodulation.wav", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test
@@ -84,8 +86,9 @@ class WaveInfoSupplierTest implements AudioTestBase {
       .putInt(42); // dummy chunk
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
-    assertEquals("No data chunk at 24: /audio/Amplitudenmodulation.wav", afe.getMessage());
+    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, WAVE_NAME));
+    assertEquals(1, aie.getIssues().size());
+    assertEquals("No data chunk at 24: /audio/Amplitudenmodulation.wav", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test
