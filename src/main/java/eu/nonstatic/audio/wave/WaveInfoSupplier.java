@@ -11,11 +11,11 @@ package eu.nonstatic.audio.wave;
 
 import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfo;
 import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.AudioInputStream;
 import eu.nonstatic.audio.AudioIssue;
-import eu.nonstatic.audio.AudioInfo;
-import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.wave.WaveInfoSupplier.WaveInfo;
 import java.io.EOFException;
 import java.io.IOException;
@@ -31,11 +31,13 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
   /**
    * https://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
    */
-  public WaveInfo getInfos(InputStream is, String name) throws AudioFormatException, IOException, AudioInfoException {
+  public WaveInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);
     try {
       int nbChunks = checkHeader(ais);
       return readDetails(ais, nbChunks);
+    } catch(AudioFormatException e) {
+      throw new AudioInfoException(e);
     } catch (EOFException e) {
       throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
     }

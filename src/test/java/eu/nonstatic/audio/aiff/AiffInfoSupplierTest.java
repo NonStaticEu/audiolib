@@ -64,8 +64,9 @@ class AiffInfoSupplierTest implements AudioTestBase {
       .put("AIFF".getBytes());
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
-    assertEquals("No AIFF FORM header at 0: /audio/Arpeggio.aiff", afe.getMessage());
+    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals(1, aie.getIssues().size());
+    assertEquals("No AIFF FORM header at 0: /audio/Arpeggio.aiff", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test
@@ -76,8 +77,9 @@ class AiffInfoSupplierTest implements AudioTestBase {
       .put("XXXX".getBytes());
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
-    assertEquals("No AIFF id at 4: /audio/Arpeggio.aiff", afe.getMessage());
+    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals(1, aie.getIssues().size());
+    assertEquals("No AIFF id at 4: /audio/Arpeggio.aiff", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test
@@ -110,8 +112,9 @@ class AiffInfoSupplierTest implements AudioTestBase {
     // and nothing else
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
-    assertEquals("Chunk COMM not found at 11: /audio/Arpeggio.aiff", afe.getMessage());
+    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals(1, aie.getIssues().size());
+    assertEquals("Chunk COMM not found at 11: /audio/Arpeggio.aiff", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test
@@ -126,8 +129,9 @@ class AiffInfoSupplierTest implements AudioTestBase {
       .put(new byte[]{1, 2, 3, 4, 5, 6});
 
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
-    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
-    assertEquals("Chunk COMM not found at 27: /audio/Arpeggio.aiff", afe.getMessage());
+    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
+    assertEquals(1, aie.getIssues().size());
+    assertEquals("Chunk COMM not found at 27: /audio/Arpeggio.aiff", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test

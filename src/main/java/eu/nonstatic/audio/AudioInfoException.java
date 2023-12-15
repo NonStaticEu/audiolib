@@ -31,6 +31,10 @@ public class AudioInfoException extends AudioException {
     this.issues = issues;
   }
 
+  public AudioInfoException(AudioFormatException e) {
+    this(e.name, AudioIssue.format(e));
+  }
+
   public List<AudioIssue> getIssues() {
     return Collections.unmodifiableList(issues);
   }

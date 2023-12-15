@@ -59,8 +59,9 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   void should_throw_no_frames() {
     MpegAudioInfoSupplier infoSupplier = new Mp3AudioInfoSupplier();
     ByteArrayInputStream noFrameStream = new ByteArrayInputStream(new byte[]{-1, -5, 80, 0, 42, 42, 42});
-    AudioFormatException afe = assertThrows(AudioFormatException.class, () -> infoSupplier.getInfos(noFrameStream, MP3_NAME));
-    assertEquals("Could not find a single frame at 0: /audio/Moog-juno-303-example.mp3", afe.getMessage());
+    AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(noFrameStream, MP3_NAME));
+    assertEquals(1, aie.getIssues().size());
+    assertEquals("Could not find a single frame at 0: /audio/Moog-juno-303-example.mp3", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test

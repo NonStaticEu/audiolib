@@ -49,23 +49,27 @@ public class OggInfoSupplier implements AudioInfoSupplier<OggInfo> {
    *     - Packets are either of types data, or, in a vorbis format: ident (sampling rate, channels, bitrate), comment, or "setup"
    *     - There is one ident at the beginning of a stream but when streaming from a radio for example, there will be more
    */
-  public OggInfo getInfos(InputStream is, String name) throws AudioInfoException, AudioFormatException, IOException {
-    OggStreamsInfos streamInfos = getStreamsInfos(is, name);
+  public OggInfo getInfos(InputStream is, String name) throws AudioInfoException, IOException {
+    try {
+      OggStreamsInfos streamInfos = getStreamsInfos(is, name);
 
-    OggInfo oggInfo = streamInfos.getOggInfos(Type.AUDIO)
-        .values()
-        .stream()
-        .filter(info -> !info.isEmpty())
-        .findFirst()
-        .orElseThrow(() -> {
-          String message = String.format("Could not find any audio stream containing pages from the %d found ones", streamInfos.size());
-          return new AudioFormatException(name, 0, AudioFormat.OGG, message);
-        });
+      OggInfo oggInfo = streamInfos.getOggInfos(Type.AUDIO)
+          .values()
+          .stream()
+          .filter(info -> !info.isEmpty())
+          .findFirst()
+          .orElseThrow(() -> {
+            String message = String.format("Could not find any audio stream containing pages from the %d found ones", streamInfos.size());
+            return new AudioFormatException(name, 0, AudioFormat.OGG, message);
+          });
 
-    // appending the global issues to a copy
-    OggInfo copy = oggInfo.copy();
-    copy.audioIssues.addAll(streamInfos.audioIssues);
-    return copy;
+      // appending the global issues to a copy
+      OggInfo copy = oggInfo.copy();
+      copy.audioIssues.addAll(streamInfos.audioIssues);
+      return copy;
+    } catch(AudioFormatException e) {
+      throw new AudioInfoException(e);
+    }
   }
 
   public OggStreamsInfos getStreamsInfos(InputStream is, String name) throws AudioFormatException, IOException {
@@ -113,15 +117,14 @@ public class OggInfoSupplier implements AudioInfoSupplier<OggInfo> {
         /* nothing */
       }
     } catch (MalformedPageException e) {
-      long location = e.getLocation();
-      log.warn("Page is malformed at {}, will seek till next one", location);
-      streamsInfos.addIssue(AudioIssue.format(location, e));
+      log.warn("Page is malformed at {}, will seek till next one", e.getLocation());
+      streamsInfos.addIssue(AudioIssue.format(e));
     } catch (MalformedPacketException e) {
       long location = e.getLocation();
       OggInfo oggInfo = streamsInfos.get(e.getSerialNumber());
       if(oggInfo != null) {
         log.warn("Packet is malformed at {}, will seek till next one", location);
-        oggInfo.addIssue(AudioIssue.format(location, e));
+        oggInfo.addIssue(AudioIssue.format(e));
       } else { // problem during bos reading, or encountered serial not declared in any bos
         streamsInfos.addIssue(AudioIssue.other(location, e));
         throw new AudioFormatException(ais.getName(), location, AudioFormat.OGG, "serialNumber-bos issue", e);

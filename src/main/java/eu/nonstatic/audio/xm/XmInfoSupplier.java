@@ -3,9 +3,9 @@ package eu.nonstatic.audio.xm;
 import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.AudioInputStream;
 import eu.nonstatic.audio.AudioIssue;
-import eu.nonstatic.audio.AudioInfoSupplier;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,10 +30,12 @@ public class XmInfoSupplier implements AudioInfoSupplier<XmInfo> {
    * Caution: this assumes there is no tempo change along the track
    */
   @Override
-  public XmInfo getInfos(InputStream is, String name) throws AudioFormatException, AudioInfoException, IOException {
+  public XmInfo getInfos(InputStream is, String name) throws AudioInfoException, IOException {
     AudioInputStream ais = new AudioInputStream(is, name);
     try {
       return getInfos(ais);
+    } catch(AudioFormatException e) {
+      throw new AudioInfoException(e);
     } catch(EOFException e){
       throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
     }
