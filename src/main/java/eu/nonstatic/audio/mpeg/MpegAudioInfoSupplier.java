@@ -13,11 +13,11 @@ import static java.util.Map.entry;
 
 import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfo;
 import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.AudioInputStream;
 import eu.nonstatic.audio.AudioIssue;
-import eu.nonstatic.audio.AudioInfo;
-import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.mpeg.MpegAudioInfoSupplier.MpegInfo;
 import java.io.EOFException;
 import java.io.IOException;
@@ -194,22 +194,22 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
    * We're assuming there is no weird sync/alignment issue
    */
   public MpegInfo getInfos(InputStream is, String name) throws AudioFormatException, AudioInfoException, IOException {
-    MpegInfo info = new MpegInfo(name);
 
-    // Let it fail as an IOException/EOFException as long as we haven't reached frames
     AudioInputStream ais = new AudioInputStream(is, name);
-    findData(ais);
-    skipID3v2(ais);
-
     try {
-      long framesLocation = ais.location();
-      while(!readFramesWithResync(ais, info));
-
-      if (info.isEmpty()) {
-        throw new AudioFormatException(name, framesLocation, format, "Could not find a single frame");
-      }
+      findData(ais);
+      skipID3v2(ais);
     } catch (EOFException e) {
       throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
+    }
+    // Let it fail as an IOException as long as we haven't reached frames
+
+    long framesLocation = ais.location();
+    MpegInfo info = new MpegInfo(name);
+    while(!readFramesWithResync(ais, info));
+
+    if (info.isEmpty()) {
+      throw new AudioFormatException(name, framesLocation, format, "Could not find a single frame");
     }
     return info;
   }

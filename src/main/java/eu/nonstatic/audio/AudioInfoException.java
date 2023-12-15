@@ -15,7 +15,8 @@ import lombok.NonNull;
 
 /**
  * To be thrown when file info cannot be extracted (eg: EOF)
- * the issues list may be used as a summary of issues
+ * the issues list may be used as a summary of issues.
+ * Not applicable for framed streams such as mp3 where we might have a partial length
  */
 public class AudioInfoException extends AudioException {
 
@@ -26,7 +27,7 @@ public class AudioInfoException extends AudioException {
   }
 
   public AudioInfoException(@NonNull String name, @NonNull List<AudioIssue> issues) {
-    super(name, null);
+    super(name, "Cannot retrieve audio infos");
     this.issues = issues;
   }
 
