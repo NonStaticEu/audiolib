@@ -11,11 +11,11 @@ package eu.nonstatic.audio.aiff;
 
 import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfo;
 import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.AudioInputStream;
 import eu.nonstatic.audio.AudioIssue;
-import eu.nonstatic.audio.AudioInfo;
-import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.aiff.AiffInfoSupplier.AiffInfo;
 import java.io.EOFException;
 import java.io.IOException;
@@ -32,11 +32,13 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
   /**
    * https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/Docs/AIFF-1.3.pdf
    */
-  public AiffInfo getInfos(InputStream is, String name) throws AudioFormatException, IOException, AudioInfoException {
+  public AiffInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);
     try {
       checkHeader(ais);
       return readInfos(ais);
+    } catch(AudioFormatException e) {
+      throw new AudioInfoException(e);
     } catch (EOFException e) {
       throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
     }

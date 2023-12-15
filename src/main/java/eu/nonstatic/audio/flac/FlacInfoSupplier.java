@@ -11,11 +11,11 @@ package eu.nonstatic.audio.flac;
 
 import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioFormatException;
+import eu.nonstatic.audio.AudioInfo;
 import eu.nonstatic.audio.AudioInfoException;
+import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.AudioInputStream;
 import eu.nonstatic.audio.AudioIssue;
-import eu.nonstatic.audio.AudioInfo;
-import eu.nonstatic.audio.AudioInfoSupplier;
 import eu.nonstatic.audio.flac.FlacInfoSupplier.FlacInfo;
 import java.io.EOFException;
 import java.io.IOException;
@@ -34,11 +34,13 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
   /**
    * https://xiph.org/flac/format.html#metadata_block_streaminfo
    */
-  public FlacInfo getInfos(InputStream is, String name) throws AudioFormatException, IOException, AudioInfoException {
+  public FlacInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);
     try {
       checkHeader(ais);
       return readInfos(ais);
+    } catch(AudioFormatException e) {
+      throw new AudioInfoException(e);
     } catch (EOFException e) {
       throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
     }
