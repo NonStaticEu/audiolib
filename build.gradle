@@ -17,7 +17,6 @@ def junitVersion = '5.10.1'
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
-    implementation('com.ibm.icu:icu4j:73.2')
     implementation('org.slf4j:slf4j-api:2.0.7')
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
@@ -65,5 +64,13 @@ publishing {
 
     repositories {
         mavenLocal()
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/nonstaticeu/audiolib"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 }
