@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
@@ -33,7 +32,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
   AiffInfoSupplier infoSupplier = new AiffInfoSupplier();
 
   @Test
-  void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_infos() throws IOException, AudioInfoException {
     AiffInfo aiffInfo = infoSupplier.getInfos(AIFF_URL.openStream(), AIFF_NAME);
     assertEquals(Duration.ofMillis(30407L), aiffInfo.getDuration());
     assertTrue(aiffInfo.getIssues().isEmpty());
@@ -43,7 +42,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
    * Tests AudioInfoSupplier.getInfo default methods actually
    */
   @Test
-  void should_give_infos_from_file() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_infos_from_file() throws IOException, AudioInfoException {
     File tempFile = File.createTempFile("music", ".aiff");
     AudioTestBase.copyFileContents(AIFF_URL, tempFile.toPath());
     AiffInfo aiffInfo = infoSupplier.getInfos(tempFile);
@@ -135,7 +134,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_find_comm_chunk() throws AudioFormatException, IOException, AudioInfoException {
+  void should_find_comm_chunk() throws IOException, AudioInfoException {
     ByteBuffer bb = ByteBuffer.allocate(52) // BIG_ENDIAN by default
       .put("FORM".getBytes())
       .putInt(1234)

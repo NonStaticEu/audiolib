@@ -12,7 +12,6 @@ package eu.nonstatic.audio.mpeg;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioTestBase;
 import eu.nonstatic.audio.mpeg.MpegAudioInfoSupplier.MpegInfo;
@@ -23,7 +22,7 @@ import org.junit.jupiter.api.Test;
 class Mp2InfoSupplierTest implements AudioTestBase {
 
   @Test
-  void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_infos() throws IOException, AudioInfoException {
     MpegInfo mpegInfo = new Mp2AudioInfoSupplier().getInfos(MP2_URL.openStream(), MP2_NAME);
     assertFalse(mpegInfo.isIncomplete());
     assertEquals(Duration.ofNanos(11102040816L), mpegInfo.getDuration());

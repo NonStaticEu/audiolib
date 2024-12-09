@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
@@ -32,7 +31,7 @@ class XmInfoSupplierTest implements AudioTestBase {
   XmInfoSupplier infoSupplier = new XmInfoSupplier();
 
   @Test
-  void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_infos() throws IOException, AudioInfoException {
     XmInfo xmInfo = infoSupplier.getInfos(XM_URL.openStream(), XM_NAME);
     assertEquals(Duration.ofMillis(127500L), xmInfo.getDuration());
     assertTrue(xmInfo.getIssues().isEmpty());

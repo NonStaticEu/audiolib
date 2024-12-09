@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
@@ -32,7 +31,7 @@ class FlacInfoSupplierTest implements AudioTestBase {
   FlacInfoSupplier infoSupplier = new FlacInfoSupplier();
 
   @Test
-  void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_infos() throws IOException, AudioInfoException {
     FlacInfo flacInfo = infoSupplier.getInfos(FLAC_URL.openStream(), FLAC_NAME);
     assertEquals(Duration.ofMillis(3692L), flacInfo.getDuration());
     assertTrue(flacInfo.getIssues().isEmpty());

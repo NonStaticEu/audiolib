@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
 class Mp3InfoSupplierTest implements AudioTestBase {
 
   @Test
-  void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_infos() throws IOException, AudioInfoException {
     MpegInfo mpegInfo = new Mp3AudioInfoSupplier().getInfos(MP3_URL.openStream(), MP3_NAME);
     assertFalse(mpegInfo.isIncomplete());
     assertEquals(Duration.ofNanos(11154285714L), mpegInfo.getDuration());
@@ -72,7 +72,7 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_give_mp3_infos_on_incomplete_file() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_mp3_infos_on_incomplete_file() throws IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = MP3_URL.openStream()) {
       bytes = is.readAllBytes();
@@ -102,7 +102,7 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_give_mp3_infos_on_out_of_synch_file() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_mp3_infos_on_out_of_synch_file() throws IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = MP3_URL.openStream()) {
       bytes = is.readAllBytes();
@@ -136,7 +136,7 @@ class Mp3InfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_give_mp3_infos_on_out_of_synch_incomplete_file() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_mp3_infos_on_out_of_synch_incomplete_file() throws IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = MP3_URL.openStream()) {
       bytes = is.readAllBytes();

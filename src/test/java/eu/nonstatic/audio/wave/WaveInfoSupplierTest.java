@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
@@ -33,7 +32,7 @@ class WaveInfoSupplierTest implements AudioTestBase {
   WaveInfoSupplier infoSupplier = new WaveInfoSupplier();
 
   @Test
-  void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_infos() throws IOException, AudioInfoException {
     WaveInfo waveInfo = infoSupplier.getInfos(WAVE_URL.openStream(), WAVE_NAME);
     assertEquals(Duration.ofMillis(8011L), waveInfo.getDuration());
     assertTrue(waveInfo.getIssues().isEmpty());

@@ -60,7 +60,7 @@ class OggInfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_handle_truncated_file_with_page() throws IOException, AudioInfoException, AudioFormatException {
+  void should_handle_truncated_file_with_page() throws IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = OGG_URL.openStream()) {
       bytes = is.readAllBytes();
@@ -91,7 +91,7 @@ class OggInfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_give_ogg_infos_on_incomplete_file() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_ogg_infos_on_incomplete_file() throws IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = OGG_URL.openStream()) {
       bytes = is.readAllBytes();
@@ -115,7 +115,7 @@ class OggInfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_give_ogg_infos_on_out_of_synch_file() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_ogg_infos_on_out_of_synch_file() throws IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = OGG_URL.openStream()) {
       bytes = is.readAllBytes();
@@ -146,7 +146,7 @@ class OggInfoSupplierTest implements AudioTestBase {
   }
 
   @Test
-  void should_give_ogg_infos_on_out_of_synch_incomplete_file() throws AudioFormatException, IOException, AudioInfoException {
+  void should_give_ogg_infos_on_out_of_synch_incomplete_file() throws IOException, AudioInfoException {
     byte[] bytes;
     try(InputStream is = OGG_URL.openStream()) {
       bytes = is.readAllBytes();
