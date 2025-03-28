@@ -1,9 +1,7 @@
 package eu.nonstatic.audio.xm;
 
-import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioInfo;
 import java.time.Duration;
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -17,7 +15,7 @@ public class XmInfo implements AudioInfo {
   short length; // in patterns
   short tempo; // ticks per pattern line
   short bpm; // there are bpm * 2/5 ticks per second, that is 24*bpm ticks per minute
-  short channels;
+  short numChannels;
   short instruments;
 
   @Override
@@ -32,11 +30,5 @@ public class XmInfo implements AudioInfo {
 
   public int getTicksPerMinute() {
     return bpm * TICKS_PER_BPM_PER_MINUTE;
-  }
-
-
-  @Override
-  public List<AudioIssue> getIssues() {
-    return List.of();
   }
 }

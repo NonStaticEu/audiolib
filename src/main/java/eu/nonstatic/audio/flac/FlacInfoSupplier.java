@@ -21,7 +21,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -68,9 +67,9 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
 
       return FlacInfo.builder()
           .name(ais.getName())
-          .frameRate(samplingRate)
-          .numChannels(numChannels)
-          .frameSize(bitsPerSample)
+          .sampleRate(samplingRate)
+          .numChannels((short)numChannels)
+          .bitsPerSample((short)bitsPerSample)
           .numFrames(totalSamples)
           .build();
     } else {
@@ -84,19 +83,14 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
   @Getter @Builder
   public static class FlacInfo implements AudioInfo {
     private final String name;
-    private final int numChannels;
-    private final int frameRate;
-    private final int frameSize; // bits
+    private final short numChannels;
+    private final int sampleRate;
+    private final short bitsPerSample;
     private final long numFrames;
 
     @Override
     public Duration getDuration() {
-      return Duration.ofMillis(Math.round((numFrames * 1000.0) / frameRate));
-    }
-
-    @Override
-    public List<AudioIssue> getIssues() {
-      return List.of();
+      return Duration.ofMillis(Math.round((numFrames * 1000.0) / sampleRate));
     }
   }
 }

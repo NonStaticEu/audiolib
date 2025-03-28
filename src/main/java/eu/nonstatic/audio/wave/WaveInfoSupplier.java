@@ -21,7 +21,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
-import java.util.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,9 +65,10 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
       if ("fmt ".equals(ckName)) {
         info.format = ais.read16bitLE(); // format
         info.numChannels = ais.read16bitLE(); // num channels
-        info.frameRate = ais.read32bitLE();
+        info.sampleRate = ais.read32bitLE();
         ais.skipNBytesBackport(4); // data rate
-        info.frameSize = ais.read16bitLE(); //  numChannels * bitsPerSample/8
+        short frameSize = ais.read16bitLE(); //  numChannels * bitsPerSample/8
+        info.bitsPerSample = (short)((frameSize << 3)/info.numChannels);
         ais.skipNBytesBackport(2); // bits per sample
         ais.skipNBytesBackport((long)ckSize - 16);
       } else if ("data".equals(ckName)) {
@@ -86,8 +86,8 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
     private final String name;
     private short format;
     private short numChannels;
-    private int frameRate;
-    private short frameSize; // bytes
+    private int sampleRate;
+    private short bitsPerSample;
     private int audioSize;
 
     public WaveInfo(String name) {
@@ -96,12 +96,7 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
 
     @Override
     public Duration getDuration() {
-      return Duration.ofMillis(Math.round((audioSize * 1000.0) / (frameRate * frameSize)));
-    }
-
-    @Override
-    public List<AudioIssue> getIssues() {
-      return List.of();
+      return Duration.ofMillis(Math.round((audioSize * 8 * 1000.0) / (numChannels * sampleRate * bitsPerSample)));
     }
   }
 }

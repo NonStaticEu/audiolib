@@ -13,14 +13,16 @@ import java.time.Duration;
 import java.util.List;
 
 public interface AudioInfo {
-      int SECONDS_PER_MINUTE = 60;
-      long NANOS_PER_SECOND = 1_000_000_000L;
+  int SECONDS_PER_MINUTE = 60;
+  long NANOS_PER_SECOND = 1_000_000_000L;
 
-      String getName();
-      Duration getDuration();
-      List<AudioIssue> getIssues();
+  String getName();
+  Duration getDuration();
+  default List<AudioIssue> getIssues() {
+    return List.of();
+  }
 
-      static Duration secondsToDuration(double seconds) {
-            return Duration.ofNanos(Math.round(seconds * NANOS_PER_SECOND));
-      }
+  static Duration secondsToDuration(double seconds) {
+    return Duration.ofNanos(Math.round(seconds * NANOS_PER_SECOND));
+  }
 }

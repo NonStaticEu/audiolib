@@ -38,7 +38,7 @@ public enum AudioFormat {
     return Stream.of(values())
         .filter(format -> format.extensions.contains(extensionLower))
         .findAny()
-        .orElseThrow(() -> new IllegalArgumentException("No audio info available for extension: " + extension)); // same contract as in valueOf()
+        .orElseThrow(() -> new IllegalArgumentException("No audio format available for extension: " + extension)); // same contract as in valueOf()
   }
 
   private static String toLowerCase(String ext) {

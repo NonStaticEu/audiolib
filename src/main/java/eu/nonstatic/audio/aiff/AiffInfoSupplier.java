@@ -21,7 +21,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +62,8 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
         .name(ais.getName())
         .numChannels(ais.read16bitBE())
         .numFrames(ais.read32bitBE())
-        .frameSize(ais.read16bitBE())
-        .frameRate(ais.readExtendedFloatBE())
+        .bitsPerSample(ais.read16bitBE())
+        .sampleRate(ais.readExtendedFloatBE())
         .build();
   }
 
@@ -88,18 +87,13 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
   public static class AiffInfo implements AudioInfo {
     private final String name;
     private short numChannels;
-    private double frameRate;
-    private int frameSize; // bits
+    private double sampleRate;
+    private short bitsPerSample;
     private int numFrames;
 
     @Override
     public Duration getDuration() {
-      return Duration.ofMillis(Math.round((numFrames * 1000.0) / frameRate));
-    }
-
-    @Override
-    public List<AudioIssue> getIssues() {
-      return List.of();
+      return Duration.ofMillis(Math.round((numFrames * 1000.0) / sampleRate));
     }
   }
 }

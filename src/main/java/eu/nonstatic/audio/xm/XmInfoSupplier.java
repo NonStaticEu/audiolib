@@ -77,7 +77,7 @@ public class XmInfoSupplier implements AudioInfoSupplier<XmInfo> {
         .length(songLength)
         .bpm(bpm)
         .tempo(tempo)
-        .channels(channels)
+        .numChannels(channels)
         .instruments(instruments)
         .build();
   }

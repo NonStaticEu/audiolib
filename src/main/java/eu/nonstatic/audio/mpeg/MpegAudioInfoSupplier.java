@@ -167,11 +167,11 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
       MPEG_VERSION_2_5, MPEG_SAMPLING_V25_MAP
   );
 
-  private static final Map<Integer, Integer> MPEG_MODE_CHANNEL_MAP = Map.of(
-      MODE_STEREO, 2,
-      MODE_JOINT_STEREO, 2,
-      MODE_DUAL_CHANNEL, 2,
-      MODE_MONO, 1
+  private static final Map<Integer, Short> MPEG_MODE_CHANNEL_MAP = Map.of(
+      MODE_STEREO, (short)2,
+      MODE_JOINT_STEREO, (short)2,
+      MODE_DUAL_CHANNEL, (short)2,
+      MODE_MONO, (short)1
   );
 
   private static final int LAYER_I_SAMPLES_PER_FRAME = 384;
@@ -403,7 +403,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   static final class FrameDetails {
     int version;
     int layer;
-    int numChannels;
+    short numChannels;
     int bitRate;
     int sampleRate;
     int sampleCount;
@@ -446,6 +446,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
       return AudioInfo.secondsToDuration(seconds);
     }
 
+    @Override
     public List<AudioIssue> getIssues() {
       return Collections.unmodifiableList(audioIssues);
     }

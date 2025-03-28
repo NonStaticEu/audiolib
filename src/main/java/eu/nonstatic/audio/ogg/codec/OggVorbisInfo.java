@@ -67,7 +67,7 @@ public class OggVorbisInfo extends OggInfo {
   @EqualsAndHashCode
   public static final class SamplingDetails {
     private int version;
-    private int numChannels;
+    private short numChannels;
     private int bitRate; // just a hint as the doc says
     private int sampleRate;
   }

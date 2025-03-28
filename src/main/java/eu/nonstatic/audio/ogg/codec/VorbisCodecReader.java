@@ -126,7 +126,7 @@ public class VorbisCodecReader implements OggCodecReader<OggVorbisInfo> {
     if(version != 0) {
       throw new UnsupportedCodecException(ais.getName(), location, serialNumber, "Unsupported Vorbis version: " + version);
     }
-    int numChannels = ais.readStrict();
+    short numChannels = (short) ais.readStrict();
     int sampleRate = ais.read32bitLE();
     int bitRate = computeBitRate(ais.read32bitLE(), ais.read32bitLE(), ais.read32bitLE());
     readBlockSizes(ais.readStrict()); // blockSizes

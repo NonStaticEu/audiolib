@@ -30,13 +30,13 @@ class AudoInfoSuppliersTest {
   @Test
   void should_not_select_supplier_by_filename() {
     IllegalArgumentException iae1 = assertThrows(IllegalArgumentException.class, () -> AudioInfoSuppliers.getByFileName("/tmp/music.xyz"));
-    assertEquals("No audio info available for extension: xyz", iae1.getMessage());
+    assertEquals("No audio format available for extension: xyz", iae1.getMessage());
 
     IllegalArgumentException iae2 = assertThrows(IllegalArgumentException.class, () -> AudioInfoSuppliers.getByFileName("music.XYZ"));
-    assertEquals("No audio info available for extension: XYZ", iae2.getMessage());
+    assertEquals("No audio format available for extension: XYZ", iae2.getMessage());
 
     IllegalArgumentException iae3 = assertThrows(IllegalArgumentException.class, () -> AudioInfoSuppliers.getByFileName("whatever"));
-    assertEquals("No audio info available for extension: null", iae3.getMessage());
+    assertEquals("No audio format available for extension: null", iae3.getMessage());
   }
 
   @Test
@@ -54,9 +54,9 @@ class AudoInfoSuppliersTest {
   @Test
   void should_not_select_flac_supplier_by_extension() {
     IllegalArgumentException iae1 = assertThrows(IllegalArgumentException.class, () -> AudioInfoSuppliers.getByExtension("XYz"));
-    assertEquals("No audio info available for extension: XYz", iae1.getMessage());
+    assertEquals("No audio format available for extension: XYz", iae1.getMessage());
 
     IllegalArgumentException iae2 = assertThrows(IllegalArgumentException.class, () -> AudioInfoSuppliers.getByExtension(null));
-    assertEquals("No audio info available for extension: null", iae2.getMessage());
+    assertEquals("No audio format available for extension: null", iae2.getMessage());
   }
 }
