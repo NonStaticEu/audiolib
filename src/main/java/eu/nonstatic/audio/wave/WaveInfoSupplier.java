@@ -32,19 +32,27 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
    */
   public WaveInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);
+    return getInfos(ais);
+  }
+
+  public WaveInfo getInfos(AudioInputStream ais) throws IOException, AudioInfoException {
     try {
       int nbChunks = checkHeader(ais);
       return readDetails(ais, nbChunks);
     } catch(AudioFormatException e) {
       throw new AudioInfoException(e);
     } catch (EOFException e) {
-      throw new AudioInfoException(name, AudioIssue.eof(ais.location(), e));
+      throw new AudioInfoException(ais.getName(), AudioIssue.eof(ais.location(), e));
     }
+  }
+
+  public static boolean isRiff(AudioInputStream ais) throws IOException {
+    return "RIFF".equals(ais.readString(4));
   }
 
   private int checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
     long location = ais.location();
-    if (!"RIFF".equals(ais.readString(4))) {
+    if (!isRiff(ais)) {
       throw new AudioFormatException(ais.getName(), location, AudioFormat.WAVE, "No RIFF header");
     }
 

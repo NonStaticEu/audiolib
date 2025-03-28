@@ -24,6 +24,8 @@ public enum AudioFormat {
   MP3("mp3"),
   MP2("mp2"),
   FLAC("flac"),
+  DTS("dts"),
+  APE("ape", "apl", "mac"),
   OGG("ogg", "oga"),
   XM("xm");
 

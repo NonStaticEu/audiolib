@@ -10,6 +10,8 @@
 package eu.nonstatic.audio;
 
 import eu.nonstatic.audio.aiff.AiffInfoSupplier;
+import eu.nonstatic.audio.ape.ApeInfoSupplier;
+import eu.nonstatic.audio.dts.DtsInfoSupplier;
 import eu.nonstatic.audio.flac.FlacInfoSupplier;
 import eu.nonstatic.audio.mpeg.Mp2AudioInfoSupplier;
 import eu.nonstatic.audio.mpeg.Mp3AudioInfoSupplier;
@@ -30,6 +32,8 @@ public final class AudioInfoSuppliers {
     AUDIO_INFO_SUPPLIERS.put(AudioFormat.MP2,  new Mp2AudioInfoSupplier());
     AUDIO_INFO_SUPPLIERS.put(AudioFormat.FLAC, new FlacInfoSupplier());
     AUDIO_INFO_SUPPLIERS.put(AudioFormat.OGG, new OggInfoSupplier());
+    AUDIO_INFO_SUPPLIERS.put(AudioFormat.DTS, new DtsInfoSupplier());
+    AUDIO_INFO_SUPPLIERS.put(AudioFormat.APE, new ApeInfoSupplier());
     AUDIO_INFO_SUPPLIERS.put(AudioFormat.XM, new XmInfoSupplier());
   }
 
