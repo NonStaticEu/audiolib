@@ -74,6 +74,7 @@ public class XmInfoSupplier implements AudioInfoSupplier<XmInfo> {
 
     return XmInfo.builder()
         .name(moduleName)
+        .tracker(trackerName)
         .length(songLength)
         .bpm(bpm)
         .tempo(tempo)

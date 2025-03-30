@@ -92,6 +92,11 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
     private int numFrames;
 
     @Override
+    public AudioFormat getFormat() {
+      return AudioFormat.AIFF;
+    }
+
+    @Override
     public Duration getDuration() {
       return Duration.ofMillis(Math.round((numFrames * 1000.0) / sampleRate));
     }

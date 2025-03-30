@@ -89,6 +89,11 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
     private final long numFrames;
 
     @Override
+    public AudioFormat getFormat() {
+      return AudioFormat.FLAC;
+    }
+
+    @Override
     public Duration getDuration() {
       return Duration.ofMillis(Math.round((numFrames * 1000.0) / sampleRate));
     }

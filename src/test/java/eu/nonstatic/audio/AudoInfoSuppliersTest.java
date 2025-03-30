@@ -9,15 +9,15 @@
  */
 package eu.nonstatic.audio;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import eu.nonstatic.audio.aiff.AiffInfoSupplier;
 import eu.nonstatic.audio.flac.FlacInfoSupplier;
 import eu.nonstatic.audio.mpeg.Mp2AudioInfoSupplier;
 import eu.nonstatic.audio.mpeg.Mp3AudioInfoSupplier;
 import eu.nonstatic.audio.wave.WaveInfoSupplier;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class AudoInfoSuppliersTest {
 
@@ -45,14 +45,14 @@ class AudoInfoSuppliersTest {
   }
 
   @Test
-  void should_select_flac_supplier_by_extension() {
+  void should_select_supplier_by_extension() {
     assertEquals(Mp3AudioInfoSupplier.class, AudioInfoSuppliers.getByExtension("mp3").getClass());
     assertEquals(Mp2AudioInfoSupplier.class, AudioInfoSuppliers.getByExtension("mp2").getClass());
     assertEquals(WaveInfoSupplier.class, AudioInfoSuppliers.getByExtension("WAV").getClass());
   }
 
   @Test
-  void should_not_select_flac_supplier_by_extension() {
+  void should_not_select_supplier_by_extension() {
     IllegalArgumentException iae1 = assertThrows(IllegalArgumentException.class, () -> AudioInfoSuppliers.getByExtension("XYz"));
     assertEquals("No audio format available for extension: XYz", iae1.getMessage());
 

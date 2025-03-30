@@ -9,6 +9,7 @@
  */
 package eu.nonstatic.audio.ogg;
 
+import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioInfo;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,6 +35,12 @@ public abstract class OggInfo extends OggIssues implements AudioInfo {
   public String getName() {
     return name + ':' + serialNumber;
   }
+
+  @Override
+  public AudioFormat getFormat() {
+    return AudioFormat.OGG;
+  }
+
   public abstract OggCodec getCodec();
 
   protected void updateGranulePos(long granulePos) {

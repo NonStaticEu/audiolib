@@ -9,21 +9,19 @@
  */
 package eu.nonstatic.audio;
 
-import java.time.Duration;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 
-public interface AudioInfo {
-  int SECONDS_PER_MINUTE = 60;
-  long NANOS_PER_SECOND = 1_000_000_000L;
+public final class AudioInfos {
 
-  String getName();
-  AudioFormat getFormat();
-  Duration getDuration();
-  default List<AudioIssue> getIssues() {
-    return List.of();
+  private AudioInfos() {}
+
+  public static AudioInfo get(Path path) throws AudioInfoException, IOException {
+    return AudioInfoSuppliers.getByFileName(path.getFileName().toString()).getInfos(path);
   }
 
-  static Duration secondsToDuration(double seconds) {
-    return Duration.ofNanos(Math.round(seconds * NANOS_PER_SECOND));
+  public static AudioInfo get(File file) throws AudioInfoException, IOException {
+    return AudioInfoSuppliers.getByFileName(file.getName()).getInfos(file);
   }
 }

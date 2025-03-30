@@ -147,6 +147,11 @@ public class ApeInfoSupplier implements AudioInfoSupplier<ApeInfo> {
     private final int numFrames;
 
     @Override
+    public AudioFormat getFormat() {
+      return AudioFormat.APE;
+    }
+
+    @Override
     public Duration getDuration() {
       int numSamples = finalFrameBlocks;
       if(numFrames > 1) {

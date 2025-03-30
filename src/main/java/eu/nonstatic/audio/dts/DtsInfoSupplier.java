@@ -46,17 +46,22 @@ public class DtsInfoSupplier implements AudioInfoSupplier<DtsInfo> {
   @Getter @Builder
   public static class DtsInfo implements AudioInfo {
     private final String name;
-    private final short format;
+    private final short waveFormat;
     private final short numChannels;
     private final int sampleRate;
     private final short bitsPerSample;
     private final int audioSize;
     private final Duration duration;
 
+    @Override
+    public AudioFormat getFormat() {
+      return AudioFormat.DTS;
+    }
+
     public static DtsInfo of(WaveInfo infos) {
       return DtsInfo.builder()
           .name(infos.getName())
-          .format(infos.getFormat())
+          .waveFormat(infos.getWaveFormat())
           .numChannels(infos.getNumChannels())
           .sampleRate(infos.getSampleRate())
           .bitsPerSample(infos.getBitsPerSample())

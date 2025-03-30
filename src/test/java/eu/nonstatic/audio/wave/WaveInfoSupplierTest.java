@@ -9,10 +9,7 @@
  */
 package eu.nonstatic.audio.wave;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
@@ -27,6 +24,10 @@ import java.nio.ByteOrder;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class WaveInfoSupplierTest implements AudioTestBase {
 
   WaveInfoSupplier infoSupplier = new WaveInfoSupplier();
@@ -34,6 +35,7 @@ class WaveInfoSupplierTest implements AudioTestBase {
   @Test
   void should_give_infos() throws IOException, AudioInfoException {
     WaveInfo waveInfo = infoSupplier.getInfos(WAVE_URL.openStream(), WAVE_NAME);
+    assertEquals(AudioFormat.WAVE, waveInfo.getFormat());
     assertEquals(Duration.ofMillis(8011L), waveInfo.getDuration());
     assertTrue(waveInfo.getIssues().isEmpty());
   }
