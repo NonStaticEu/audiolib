@@ -9,8 +9,6 @@
  */
 package eu.nonstatic.audio.mpeg;
 
-import static java.util.Map.entry;
-
 import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfo;
@@ -33,6 +31,8 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+
+import static java.util.Map.entry;
 
 @Slf4j
 @Getter
@@ -205,7 +205,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     // Let it fail as an IOException as long as we haven't reached frames
 
     long framesLocation = ais.location();
-    MpegInfo info = new MpegInfo(name);
+    MpegInfo info = new MpegInfo(name, format);
     while(!readFramesWithResync(ais, info));
 
     if (info.isEmpty()) {
@@ -321,12 +321,9 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     }
     details.bitRate = bitRate;
 
-    Integer sampleRate = Optional.ofNullable(MPEG_SAMPLING_RATE_MAP.get(details.version))
+    int sampleRate = Optional.ofNullable(MPEG_SAMPLING_RATE_MAP.get(details.version))
         .map(map -> map.get(samplingIndex))
         .orElseThrow(() -> new MalformedFrameException(ais.getName(), headerLocation, "Cannot compute sampling rate"));
-    if(sampleRate == null) {
-      throw new MalformedFrameException(ais.getName(), headerLocation, "Cannot handle sampling for index " + Integer.toHexString(samplingIndex));
-    }
     details.sampleRate = sampleRate;
 
     switch (details.layer) {
@@ -413,12 +410,15 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   public static final class MpegInfo implements AudioInfo {
     @Getter
     private final String name;
+    @Getter
+    private final AudioFormat format;
     private final Map<Integer, Long> sampleCounts = new HashMap<>(); // samplingRate => samples
     private final List<AudioIssue> audioIssues = new ArrayList<>(); // location => bytes skipped
     private boolean incomplete;
 
-    public MpegInfo(String name) {
+    public MpegInfo(String name, AudioFormat format) {
       this.name = name;
+      this.format = format;
     }
 
     private void appendFrame(FrameDetails details) {
@@ -444,6 +444,13 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
         seconds += entry.getValue() / (double) entry.getKey();
       }
       return AudioInfo.secondsToDuration(seconds);
+    }
+
+    public int getApproxSampleRate() {
+      return sampleCounts.entrySet()
+          .stream().max(Entry.comparingByValue())
+          .map(Entry::getKey)
+          .orElse(0);
     }
 
     @Override

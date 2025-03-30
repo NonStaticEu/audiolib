@@ -9,13 +9,7 @@
  */
 package eu.nonstatic.audio.mpeg;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioInputStream;
@@ -34,13 +28,22 @@ import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class Mp3InfoSupplierTest implements AudioTestBase {
 
   @Test
   void should_give_infos() throws IOException, AudioInfoException {
     MpegInfo mpegInfo = new Mp3AudioInfoSupplier().getInfos(MP3_URL.openStream(), MP3_NAME);
+    assertEquals(AudioFormat.MP3, mpegInfo.getFormat());
     assertFalse(mpegInfo.isIncomplete());
     assertEquals(Duration.ofNanos(11154285714L), mpegInfo.getDuration());
+    assertEquals(44100, mpegInfo.getApproxSampleRate());
   }
 
   @Test
@@ -98,6 +101,7 @@ class Mp3InfoSupplierTest implements AudioTestBase {
       assertEquals(Duration.ofNanos(11128163265L), incompleteDuration);
       // That's one Layer III frame less
       assertEquals(Math.round(1152*(1_000_000_000.0)/44100), fullDuration.minus(incompleteDuration).toNanos());
+      assertEquals(44100, incompleteInfos.getApproxSampleRate());
     }
   }
 
@@ -132,6 +136,7 @@ class Mp3InfoSupplierTest implements AudioTestBase {
       assertEquals(Duration.ofNanos(11128163265L), incompleteDuration);
       // That's one Layer III frame less
       assertEquals(Math.round(1152*(1_000_000_000.0)/44100), fullDuration.minus(incompleteDuration).toNanos());
+      assertEquals(44100, incompleteInfos.getApproxSampleRate());
     }
   }
 
@@ -162,6 +167,7 @@ class Mp3InfoSupplierTest implements AudioTestBase {
       assertNull(issue.getMetas());
       assertEquals(EOFException.class, issue.getCause().getClass());
       assertEquals("AudioIssue EOF at 321", issue.toString());
+      assertEquals(44100, incompleteInfos.getApproxSampleRate());
     }
   }
 

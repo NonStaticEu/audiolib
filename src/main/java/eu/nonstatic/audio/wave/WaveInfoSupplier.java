@@ -71,7 +71,7 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
       int ckSize = ais.read32bitLE();
 
       if ("fmt ".equals(ckName)) {
-        info.format = ais.read16bitLE(); // format
+        info.waveFormat = ais.read16bitLE(); // format
         info.numChannels = ais.read16bitLE(); // num channels
         info.sampleRate = ais.read32bitLE();
         ais.skipNBytesBackport(4); // data rate
@@ -92,7 +92,7 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
   @Getter
   public static final class WaveInfo implements AudioInfo {
     private final String name;
-    private short format;
+    private short waveFormat;
     private short numChannels;
     private int sampleRate;
     private short bitsPerSample;
@@ -100,6 +100,11 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
 
     public WaveInfo(String name) {
       this.name = name;
+    }
+
+    @Override
+    public AudioFormat getFormat() {
+      return AudioFormat.WAVE;
     }
 
     @Override

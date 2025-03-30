@@ -9,10 +9,7 @@
  */
 package eu.nonstatic.audio.xm;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
@@ -26,6 +23,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class XmInfoSupplierTest implements AudioTestBase {
 
   XmInfoSupplier infoSupplier = new XmInfoSupplier();
@@ -33,6 +34,8 @@ class XmInfoSupplierTest implements AudioTestBase {
   @Test
   void should_give_infos() throws IOException, AudioInfoException {
     XmInfo xmInfo = infoSupplier.getInfos(XM_URL.openStream(), XM_NAME);
+    assertEquals(AudioFormat.XM, xmInfo.getFormat());
+    assertEquals("FastTracker v2.00", xmInfo.getTracker());
     assertEquals(Duration.ofMillis(127500L), xmInfo.getDuration());
     assertTrue(xmInfo.getIssues().isEmpty());
   }

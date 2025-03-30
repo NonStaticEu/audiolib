@@ -9,12 +9,7 @@
  */
 package eu.nonstatic.audio.ogg;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioFormatException;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioIssue;
@@ -31,11 +26,18 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class OggInfoSupplierTest implements AudioTestBase {
 
   @Test
   void should_give_infos() throws AudioFormatException, IOException, AudioInfoException {
     OggInfo oggInfo = new OggInfoSupplier().getInfos(OGG_URL.openStream(), OGG_NAME);
+    assertEquals(AudioFormat.OGG, oggInfo.getFormat());
     assertEquals(Duration.ofNanos(6104036281L), oggInfo.getDuration());
 
     OggStreamsInfos oggStreamsInfo = new OggInfoSupplier().getStreamsInfos(OGG_URL.openStream(), OGG_NAME);

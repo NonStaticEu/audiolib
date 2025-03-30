@@ -9,9 +9,7 @@
  */
 package eu.nonstatic.audio.mpeg;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
+import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioTestBase;
 import eu.nonstatic.audio.mpeg.MpegAudioInfoSupplier.MpegInfo;
@@ -19,11 +17,15 @@ import java.io.IOException;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 class Mp2InfoSupplierTest implements AudioTestBase {
 
   @Test
   void should_give_infos() throws IOException, AudioInfoException {
     MpegInfo mpegInfo = new Mp2AudioInfoSupplier().getInfos(MP2_URL.openStream(), MP2_NAME);
+    assertEquals(AudioFormat.MP2, mpegInfo.getFormat());
     assertFalse(mpegInfo.isIncomplete());
     assertEquals(Duration.ofNanos(11102040816L), mpegInfo.getDuration());
   }

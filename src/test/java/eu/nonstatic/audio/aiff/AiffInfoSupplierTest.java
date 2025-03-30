@@ -9,10 +9,7 @@
  */
 package eu.nonstatic.audio.aiff;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import eu.nonstatic.audio.AudioFormat;
 import eu.nonstatic.audio.AudioInfoException;
 import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
@@ -27,6 +24,10 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class AiffInfoSupplierTest implements AudioTestBase {
 
   AiffInfoSupplier infoSupplier = new AiffInfoSupplier();
@@ -34,6 +35,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
   @Test
   void should_give_infos() throws IOException, AudioInfoException {
     AiffInfo aiffInfo = infoSupplier.getInfos(AIFF_URL.openStream(), AIFF_NAME);
+    assertEquals(AudioFormat.AIFF, aiffInfo.getFormat());
     assertEquals(Duration.ofMillis(30407L), aiffInfo.getDuration());
     assertTrue(aiffInfo.getIssues().isEmpty());
   }
