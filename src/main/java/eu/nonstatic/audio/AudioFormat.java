@@ -19,19 +19,21 @@ import lombok.Getter;
 @Getter
 public enum AudioFormat {
 
-  AIFF("aif", "aiff"),
-  WAVE("wav", "wave"),
-  MP3("mp3"),
-  MP2("mp2"),
-  FLAC("flac"),
-  DTS("dts"),
-  APE("ape", "apl", "mac"),
-  OGG("ogg", "oga"),
-  XM("xm");
+  AIFF("Aiff", "aif", "aiff"),
+  WAVE("Wave", "wav", "wave"),
+  MP3("MP3", "mp3"),
+  MP2("MP2", "mp2"),
+  FLAC("Flac", "flac"),
+  DTS("DTS", "dts"),
+  APE("APE", "ape", "apl", "mac"),
+  OGG("Ogg", "ogg", "oga"),
+  XM("XM", "xm");
 
+  private final String displayName;
   private final List<String> extensions;
 
-  AudioFormat(String... extensions) {
+  AudioFormat(String displayName, String... extensions) {
+    this.displayName = displayName;
     this.extensions = Collections.unmodifiableList(Arrays.asList(extensions)); // needs to allow contains(null)
   }
 

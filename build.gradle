@@ -6,22 +6,21 @@ plugins {
 }
 
 group = "eu.nonstatic"
-version = "0.3.0"
+version = "0.3.1"
 
 repositories {
     mavenCentral()
 }
 
-def lombokVersion = '1.18.30'
-def junitVersion = '5.10.1'
+def lombokVersion = '1.18.40'
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
-    implementation('org.slf4j:slf4j-api:2.0.7')
+    implementation('org.slf4j:slf4j-api:2.0.17')
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 configurations.implementation {
