@@ -12,15 +12,14 @@ repositories {
     mavenCentral()
 }
 
-def lombokVersion = '1.18.40'
-def junitVersion = '5.13.4'
+def lombokVersion = '1.18.42'
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     implementation('org.slf4j:slf4j-api:2.0.17')
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
