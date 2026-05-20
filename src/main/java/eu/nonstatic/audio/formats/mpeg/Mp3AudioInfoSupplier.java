@@ -7,22 +7,12 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.formats.mpeg;
 
-import lombok.Getter;
+import eu.nonstatic.audio.AudioFileType;
 
-@Getter
-public class AudioException extends Exception {
-
-  protected final String name;
-
-  public AudioException(String name, String message) {
-    super(message);
-    this.name = name;
-  }
-
-  public AudioException(String name, String message, Throwable cause) {
-    super(message, cause);
-    this.name = name;
+public class Mp3AudioInfoSupplier extends MpegAudioInfoSupplier {
+  public Mp3AudioInfoSupplier() {
+    super(AudioFileType.MP3);
   }
 }

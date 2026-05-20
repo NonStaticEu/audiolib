@@ -7,22 +7,21 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.formats;
 
-import lombok.Getter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 
-@Getter
-public class AudioException extends Exception {
+public final class AudioInfos {
 
-  protected final String name;
+  private AudioInfos() {}
 
-  public AudioException(String name, String message) {
-    super(message);
-    this.name = name;
+  public static AudioInfo get(Path path) throws AudioInfoException, IOException {
+    return AudioInfoSuppliers.getByFileName(path.getFileName().toString()).getInfos(path);
   }
 
-  public AudioException(String name, String message, Throwable cause) {
-    super(message, cause);
-    this.name = name;
+  public static AudioInfo get(File file) throws AudioInfoException, IOException {
+    return AudioInfoSuppliers.getByFileName(file.getName()).getInfos(file);
   }
 }

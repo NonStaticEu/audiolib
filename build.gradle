@@ -6,13 +6,13 @@ plugins {
 }
 
 group = "eu.nonstatic"
-version = "0.3.1"
+version = "0.4.0"
 
 repositories {
     mavenCentral()
 }
 
-def lombokVersion = '1.18.42'
+def lombokVersion = '1.18.46'
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
@@ -29,8 +29,8 @@ configurations.implementation {
 
 
 java {
-    sourceCompatibility = JavaVersion.toVersion("11")
-    targetCompatibility = JavaVersion.toVersion("11")
+    sourceCompatibility = JavaVersion.toVersion("17")
+    targetCompatibility = JavaVersion.toVersion("17")
 }
 
 tasks.withType(JavaCompile).configureEach {

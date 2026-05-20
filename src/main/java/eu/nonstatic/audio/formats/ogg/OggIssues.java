@@ -7,22 +7,28 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio;
+package eu.nonstatic.audio.formats.ogg;
 
-import lombok.Getter;
+import eu.nonstatic.audio.AudioIssue;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import lombok.NonNull;
 
-@Getter
-public class AudioException extends Exception {
+public abstract class OggIssues {
+  protected final List<AudioIssue> audioIssues = new ArrayList<>(); // location => bytes skipped
 
-  protected final String name;
-
-  public AudioException(String name, String message) {
-    super(message);
-    this.name = name;
+  public List<AudioIssue> getIssues() {
+    return Collections.unmodifiableList(audioIssues);
   }
 
-  public AudioException(String name, String message, Throwable cause) {
-    super(message, cause);
-    this.name = name;
+  public void addIssue(@NonNull AudioIssue issue) {
+    audioIssues.add(issue);
+  }
+
+
+  protected final void into(OggIssues oggIssues) {
+    oggIssues.audioIssues.clear();
+    oggIssues.audioIssues.addAll(audioIssues);
   }
 }
