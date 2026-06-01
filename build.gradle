@@ -9,6 +9,10 @@ group = "eu.nonstatic"
 version = "0.4.0"
 
 repositories {
+    maven {
+        url = uri("https://raw.githubusercontent.com/slok/algs4-mvn-repo/master/")
+    }
+    mavenLocal()
     mavenCentral()
 }
 
@@ -18,8 +22,10 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     implementation('org.slf4j:slf4j-api:2.0.17')
     compileOnly("org.projectlombok:lombok:$lombokVersion")
+    implementation("edu.princeton.cs.introcs:algs4-package:1.0")
+    runtimeOnly("com.googlecode.soundlibs:soundlibs:1.4")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.14.3")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
