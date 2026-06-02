@@ -9,43 +9,85 @@
  */
 package eu.nonstatic.audio;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.Getter;
 
 @Getter
 public enum AudioFileType {
 
-  AIFF("Aiff", "aif", "aiff"),
-  WAVE("Wave", "wav", "wave"),
-  MP3("MP3", "mp3"),
-  MP2("MP2", "mp2"),
-  FLAC("Flac", "flac"),
-  DTS("DTS", "dts"),
-  APE("APE", "ape", "apl", "mac"),
-  OGG("Ogg", "ogg", "oga"),
-  XM("XM", "xm");
+  AIFF("Aiff", List.of("aif", "aiff"), List.of("audio/x-aiff")),
+  WAVE("Wave", List.of("wav", "wave"), List.of("audio/wav", "audio/x-wav", "audio/vnd.wav")),
+  MP3("MP3", List.of("mp3"), List.of("audio/mpeg")), // before MP2 because of mimeTypeToExtension
+  MP2("MP2", List.of("mp2"), List.of("audio/mpeg")),
+  FLAC("Flac", List.of("flac"), List.of("audio/flac")),
+  DTS("DTS", List.of("dts")),
+  APE("APE", List.of("ape", "apl", "mac"), List.of("audio/x-monkeys-audio")),
+  OGG("Ogg", List.of("ogg", "oga"), List.of("audio/ogg")),
+  XM("XM", List.of("xm"));
 
   private final String displayName;
   private final List<String> extensions;
+  private final List<String> mimeTypes;
 
-  AudioFileType(String displayName, String... extensions) {
+  AudioFileType(String displayName, List<String> extensions, List<String> mimeTypes) {
     this.displayName = displayName;
-    this.extensions = Collections.unmodifiableList(Arrays.asList(extensions)); // needs to allow contains(null)
+    this.extensions = extensions; // needs to allow contains(null)
+    this.mimeTypes = mimeTypes;
+  }
+
+  AudioFileType(String displayName, List<String> extensions) {
+    this(displayName, extensions, Collections.emptyList());
   }
 
   public static AudioFileType ofExtension(String extension) {
-    String extensionLower = toLowerCase(extension);
-    return Stream.of(values())
-        .filter(format -> format.extensions.contains(extensionLower))
-        .findAny()
-        .orElseThrow(() -> new IllegalArgumentException("No AudioFileType available for extension: " + extension)); // same contract as in valueOf()
+    Optional<AudioFileType> result = Optional.empty();
+    if(isNotEmpty(extension)) {
+      String extLower = extension.toLowerCase(Locale.ROOT);
+      result = Stream.of(values())
+          .filter(aft -> aft.extensions.contains(extLower))
+          .findAny();
+    }
+    return result.orElseThrow(() -> new IllegalArgumentException("No AudioFileType available for extension: " + extension)); // same contract as in valueOf()
   }
 
-  private static String toLowerCase(String ext) {
-    return ext != null ? ext.toLowerCase(Locale.ROOT) : null;
+  public static List<AudioFileType> ofMimeType(String mimeType) {
+    List<AudioFileType> result = List.of();
+    if(isNotEmpty(mimeType)) {
+      String mimeLower = mimeType.toLowerCase(Locale.ROOT);
+      result = Stream.of(values())
+          .filter(aft -> aft.mimeTypes.contains(mimeLower))
+          .toList();
+    }
+
+    if(result.isEmpty()) {
+      throw new IllegalArgumentException("No AudioFileType available for mimeType: " + mimeType); // same contract as in valueOf()
+    }
+    return result;
+  }
+
+  public static List<String> extensionToMimeTypes(String extension) {
+    return ofExtension(extension).mimeTypes;
+  }
+
+  public static String extensionToMimeType(String extension) {
+    List<String> mimeTypes = extensionToMimeTypes(extension);
+    return mimeTypes.isEmpty() ? null : mimeTypes.get(0);
+  }
+
+  public static List<String> mimeTypeToExtensions(String mimeType) {
+    return ofMimeType(mimeType).stream().flatMap(aft -> aft.extensions.stream()).toList();
+  }
+
+  public static String mimeTypeToExtension(String mimeType) {
+    List<String> extensions = mimeTypeToExtensions(mimeType);
+    return extensions.isEmpty() ? null : extensions.get(0);
+  }
+
+  private static boolean isNotEmpty(String s) {
+    return s != null && !s.isEmpty();
   }
 }
