@@ -9,6 +9,8 @@
  */
 package eu.nonstatic.audio.detect;
 
+import static java.lang.Character.toLowerCase;
+
 import lombok.NonNull;
 
 /**
@@ -18,6 +20,29 @@ import lombok.NonNull;
  */
 public record Key(@NonNull Note note, @NonNull Mode mode, double confidence) {
 
+  public Key {
+    if (confidence < 0.0 || confidence > 1.0) {
+      throw new IllegalArgumentException("Invalid confidence: " + confidence);
+    }
+  }
+
+  public static Key ofSignature(String signature, double confidence) {
+    if (signature.isEmpty() || signature.length() > 2) {
+      throw new IllegalArgumentException("Invalid key signature: " + signature);
+    }
+    char symbol = signature.charAt(0);
+    Character alteration = signature.length() == 2 ? signature.charAt(1) : null;
+    Note note = Note.of(symbol, alteration);
+    Mode mode = Character.isLowerCase(symbol) ? Mode.MINOR : Mode.MAJOR;
+    return new Key(note, mode, confidence);
+  }
+
+  public String signature() {
+    String result = Mode.MINOR.equals(mode)
+        ? Character.toString(toLowerCase(note.getSymbol()))
+        : Character.toString(note.getSymbol());
+    return note.getAlteration() != null ? result + note.getAlteration() : result;
+  }
 
   /**
    * Camelot wheel code (used by DJs for harmonic mixing), eg C major = 8B, A minor = 8A.
@@ -37,6 +62,6 @@ public record Key(@NonNull Note note, @NonNull Mode mode, double confidence) {
 
   @Override
   public String toString() {
-    return note.name() + ' ' + mode.name().toLowerCase() + " (" + camelot() + ')';
+    return signature() + " (" + confidence + ')';
   }
 }
