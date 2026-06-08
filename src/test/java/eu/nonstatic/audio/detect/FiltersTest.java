@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class FiltersTest {
 
-  private static final double SAMPLE_RATE = 44100.0;
+  private static final float SAMPLE_RATE = 44100.f;
   private static final int SAMPLES = (int) (2 * SAMPLE_RATE); // 2 seconds
   private static final int SETTLED = SAMPLES / 2;             // measure RMS past the transient
   private static final double BUTTERWORTH_Q = 1.0 / Math.sqrt(2.0);

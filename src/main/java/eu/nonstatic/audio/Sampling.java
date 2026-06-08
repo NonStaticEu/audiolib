@@ -9,13 +9,19 @@
  */
 package eu.nonstatic.audio;
 
+import eu.nonstatic.timecode.TimeCode;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.time.Duration;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 
-public record Sampling(double[] samples, AudioFormat format) {
+public record Sampling(double[] samples, int start, int length, AudioFormat format) {
+
+  public Sampling(double[] samples, AudioFormat format) {
+    this(samples, 0, samples.length, format);
+  }
 
   public static Sampling of(AudioInputStream ais) throws IOException {
     try (AudioInputStream mis = AudioUtils.getMonoInputStream(ais)) {
@@ -35,8 +41,20 @@ public record Sampling(double[] samples, AudioFormat format) {
     }
   }
 
-  public int length() {
-    return samples.length;
+  public Sampling slice(TimeCode start, Duration duration) {
+    return new Sampling(samples, timeCodeToSamples(start), durationToSamples(duration), format);
+  }
+
+  public Sampling slice(TimeCode start, TimeCode end) {
+    return new Sampling(samples, timeCodeToSamples(start), framesToSamples(end.toFrameCount() - start.toFrameCount()), format);
+  }
+
+  public TimeCode timeCode() {
+    return new TimeCode(samplesToDuration(start));
+  }
+
+  public Duration duration() {
+    return samplesToDuration(length);
   }
 
   public float sampleRate() {
@@ -49,5 +67,22 @@ public record Sampling(double[] samples, AudioFormat format) {
 
   public boolean bigEndian() {
     return format.isBigEndian();
+  }
+
+  private int timeCodeToSamples(TimeCode timeCode) {
+    return framesToSamples(timeCode.toFrameCount());
+  }
+
+  private int framesToSamples(int frames) {
+    return (int) (format.getSampleRate() * format.getSampleSizeInBits() * frames) / (75 * 8);
+  }
+
+  private int durationToSamples(Duration duration) {
+    return (int)((format.getSampleRate() * format.getSampleSizeInBits() * duration.toMillis()) / (1000 * 8));
+  }
+
+  private Duration samplesToDuration(int samples) {
+    float millis = (samples * 1000 * 8) / (format.getSampleRate() * format.getSampleSizeInBits());
+    return Duration.ofMillis((long)millis);
   }
 }

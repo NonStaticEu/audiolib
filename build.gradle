@@ -1,14 +1,22 @@
 plugins {
     id 'java'
+    id 'java-library'
     id 'jacoco'
     id 'maven-publish'
     id "org.sonarqube" version "4.4.1.3373"
 }
 
 group = "eu.nonstatic"
-version = "0.4.0"
+version = "0.4.1"
 
 repositories {
+    maven {
+        url = "https://maven.pkg.github.com/nonstaticeu/timecode"
+        credentials {
+            username = System.getenv("GITHUB_ACTOR")
+            password = System.getenv("GITHUB_TOKEN")
+        }
+    }
     maven {
         url = uri("https://raw.githubusercontent.com/slok/algs4-mvn-repo/master/")
     }
@@ -21,14 +29,16 @@ def lombokVersion = '1.18.46'
 dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     implementation("edu.princeton.cs.introcs:algs4-package:1.0")
+    api('eu.nonstatic:timecode:1.0.0')
     implementation('org.slf4j:slf4j-api:2.0.17')
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
     runtimeOnly("com.googlecode.soundlibs:mp3spi:1.9.5.4")
     runtimeOnly("com.googlecode.soundlibs:vorbisspi:1.0.3.3")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.14.4")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(platform('org.junit:junit-bom:6.1.0'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 configurations.implementation {
