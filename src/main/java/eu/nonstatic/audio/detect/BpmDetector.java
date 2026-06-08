@@ -47,11 +47,15 @@ public record BpmDetector(double minBpm, double maxBpm) {
   }
 
   public Bpm detect(Sampling sampling) {
-    return detect(sampling.samples(), sampling.sampleRate());
+    return detect(sampling.samples(), sampling.start(), sampling.length(), sampling.sampleRate());
   }
 
   public Bpm detect(double[] samples, float sampleRate) {
-    double[] filtered = Filters.IIR.lowPass(samples, sampleRate, LOW_PASS_CUTOFF_HZ);
+    return detect(samples, 0, samples.length, sampleRate);
+  }
+
+  public Bpm detect(double[] samples, int start, int len, float sampleRate) {
+    double[] filtered = Filters.IIR.lowPass(samples, start, len, sampleRate, LOW_PASS_CUTOFF_HZ);
 
     EnergyDetector energyDetector = new EnergyDetector();
     double[] envelope = energyDetector.energyEnvelope(filtered);

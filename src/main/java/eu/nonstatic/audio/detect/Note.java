@@ -9,6 +9,10 @@
  */
 package eu.nonstatic.audio.detect;
 
+/**
+ * Those are the notes of the piano keyboard
+ * The flat notes are not present
+ */
 public enum Note {
   C,
   C_SHARP,

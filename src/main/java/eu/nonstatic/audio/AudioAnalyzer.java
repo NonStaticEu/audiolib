@@ -15,6 +15,7 @@ import edu.princeton.cs.algs4.Complex;
 import edu.princeton.cs.algs4.FFT;
 import eu.nonstatic.audio.formats.AudioInfo;
 import java.io.IOException;
+import java.util.Arrays;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -102,8 +103,8 @@ public record AudioAnalyzer(int windowFrames, int overlapFrames) {
    * Like specgram in Matlab
    */
   public Complex[] fft(double[] audioFrames, int start, int len) {
-    hanning(audioFrames, start, Math.min(audioFrames.length - start, len)); // min in case we have an incomplete window
-    Complex[] complexFrames = ComplexUtils.realToComplex(audioFrames, start, len);
+    double[] hanning = hanning(audioFrames, start, len);
+    Complex[] complexFrames = ComplexUtils.realToComplex(hanning);
     Complex[] fft = FFT.fft(complexFrames);
     return cleanConjugates(fft); // since the input was real
   }
@@ -122,15 +123,18 @@ public record AudioAnalyzer(int windowFrames, int overlapFrames) {
    * @see "https://www.physik.uni-wuerzburg.de/~praktiku/Anleitung/Fremde/ANO14.pdf"
    *
    */
-  public void hanning(double[] audioBuffer, int start, int len) {
+  public static double[] hanning(double[] audioBuffer, int start, int len) {
+    len = Math.min(audioBuffer.length - start, len);
+    double[] result = Arrays.copyOfRange(audioBuffer, start, start+len);
     int N = len - 1;
-    for (int i = start, n = 0; i < start + len; i++, n++) {
-      audioBuffer[i] = audioBuffer[i] * 0.5 * (1.0 - Math.cos(2.0 * Math.PI * n / N));
+    for (int i = 0, n = 0; i < len; i++, n++) {
+      result[i] = result[i] * 0.5 * (1.0 - Math.cos(2.0 * Math.PI * n / N));
     }
+    return result;
   }
 
-  public void hanning(double[] audioBuffer) {
-    hanning(audioBuffer, 0, audioBuffer.length);
+  public double[] hanning(double[] audioBuffer) {
+    return hanning(audioBuffer, 0, audioBuffer.length);
   }
 
   /**

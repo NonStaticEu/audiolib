@@ -15,7 +15,6 @@ import eu.nonstatic.audio.AudioUtils;
 import eu.nonstatic.audio.Sampling;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -59,11 +58,19 @@ public record KeyDetector(int windowFrames, double minFrequency, double maxFrequ
   }
 
   public Key detect(Sampling sampling) {
-    return detect(sampling.samples(), sampling.sampleRate());
+    return detect(sampling.samples(), sampling.start(), sampling.length(), sampling.sampleRate());
   }
 
-  public Key detect(double[] samples, double sampleRate) {
-    return bestMatch(chroma(samples, sampleRate));
+  public Key detect(double[] samples, float sampleRate) {
+    return detect(samples, 0, samples.length, sampleRate);
+  }
+
+  private Key detect(double[] samples, int start, int length, float sampleRate) {
+    return bestMatch(chroma(samples, start, length, sampleRate));
+  }
+
+  public double[] chroma(double[] samples, float sampleRate) {
+    return chroma(samples, 0, samples.length, sampleRate);
   }
 
   /**
@@ -71,15 +78,15 @@ public record KeyDetector(int windowFrames, double minFrequency, double maxFrequ
    * magnitude is folded into the pitch class of its frequency. Octaves of the same note thus
    * accumulate together.
    */
-  public double[] chroma(double[] samples, double sampleRate) {
+  public double[] chroma(double[] samples, int start, int len, float sampleRate) {
     AudioAnalyzer analyzer = new AudioAnalyzer(windowFrames); // 50% overlap by default
     int hop = windowFrames - analyzer.overlapFrames();
 
     double[] chroma = new double[PITCH_CLASSES];
-    for (int start = 0; start + windowFrames <= samples.length; start += hop) {
-      // AudioAnalyzer.fft applies the Hanning window, runs the FFT and drops the conjugate
+    for (int s = start; s + windowFrames <= start+len; s += hop) {
+      // fft applies the Hanning window, runs the FFT and drops the conjugate
       // mirror; the remaining bin i carries the magnitude of frequency (i+1)*sampleRate/N.
-      Complex[] spectrum = analyzer.fft(Arrays.copyOfRange(samples, start, start + windowFrames));
+      Complex[] spectrum = analyzer.fft(samples, s, windowFrames);
       for (int i = 0; i < spectrum.length; i++) {
         double frequency = (i + 1) * sampleRate / windowFrames;
         if (frequency < minFrequency || frequency > maxFrequency) {
