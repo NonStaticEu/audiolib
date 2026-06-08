@@ -9,21 +9,58 @@
  */
 package eu.nonstatic.audio.detect;
 
+import java.util.Objects;
+import lombok.Getter;
+
 /**
  * Those are the notes of the piano keyboard
  * The flat notes are not present
  */
+@Getter
 public enum Note {
-  C,
-  C_SHARP,
-  D,
-  D_SHARP,
-  E,
-  F,
-  F_SHARP,
-  G,
-  G_SHARP,
-  A,
-  A_SHARP,
-  B,
+  C('C'),
+  C_SHARP('C', Note.SHARP),
+  D('D'),
+  D_SHARP('D', Note.SHARP),
+  E('E'),
+  F('F'),
+  F_SHARP('F', Note.SHARP),
+  G('G'),
+  G_SHARP('G', Note.SHARP),
+  A('A'),
+  A_SHARP('A', Note.SHARP),
+  B('B');
+
+  static final char SHARP = '♯'; // dièse in FR
+  static final char FLAT = '♭'; // bémol in FR
+
+  private final char symbol;
+  private final Character alteration;
+
+  Note(char symbol, Character alteration) {
+    this.symbol = Character.toUpperCase(symbol);
+    this.alteration = alteration;
+  }
+
+  Note(char symbol) {
+    this(symbol, null);
+  }
+
+  public static Note of(char symbol, Character alteration) {
+    if(alteration != null) {
+      if(alteration == '#') {
+        alteration = SHARP;
+      } else if(alteration == 'b') {
+        alteration = FLAT;
+      }
+    }
+
+    symbol = Character.toUpperCase(symbol);
+    for (Note value : values()) {
+      if (value.symbol == symbol && Objects.equals(value.alteration, alteration)) {
+        return value;
+      }
+    }
+    throw new IllegalArgumentException("Invalid note: " + symbol + " / " + alteration);
+  }
 }

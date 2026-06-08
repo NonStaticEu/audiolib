@@ -9,6 +9,15 @@
  */
 package eu.nonstatic.audio.detect;
 
+import lombok.Getter;
+
+@Getter
 public enum Mode {
-    MAJOR, MINOR
+    MAJOR('M'), MINOR('m');
+
+  private final char symbol;
+
+  Mode(char symbol) {
+    this.symbol = symbol;
   }
+}
