@@ -13,6 +13,8 @@ public class AiffInfo implements AudioInfo {
   private final float sampleRate;
   private final short bitsPerSample;
   private final int numFrames;
+  private final String compression;
+  private final boolean bigEndian;
 
   @Override
   public AudioFileType getType() {

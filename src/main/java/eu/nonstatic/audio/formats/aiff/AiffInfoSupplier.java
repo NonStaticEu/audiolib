@@ -29,8 +29,8 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
   public AiffInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);
     try {
-      checkHeader(ais);
-      return readInfos(ais);
+      boolean aifc = checkHeader(ais);
+      return readInfos(ais, aifc);
     } catch(AudioFormatException e) {
       throw new AudioInfoException(e);
     } catch (EOFException e) {
@@ -38,7 +38,7 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
     }
   }
 
-  private void checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
+  private boolean checkHeader(AudioInputStream ais) throws AudioFormatException, IOException {
     long location = ais.location();
     if (!"FORM".equals(ais.readString(4))) {
       throw new AudioFormatException(ais.getName(), location, AudioFileType.AIFF, "No AIFF FORM header");
@@ -46,19 +46,42 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
 
     location = ais.location();
     ais.read32bitBE(); // total size
-    if (!"AIFF".equals(ais.readString(4))) {
-      throw new AudioFormatException(ais.getName(), location, AudioFileType.AIFF, "No AIFF id");
+    String type = ais.readString(4);
+    if ("AIFF".equals(type)) {
+      return false;
+    } else if("AIFC".equals(type)) {
+      return true;
+    } else {
+      throw new AudioFormatException(ais.getName(), location, AudioFileType.AIFF, "No AIFF/AIFC id");
     }
   }
 
-  private AiffInfo readInfos(AudioInputStream ais) throws AudioFormatException, IOException {
+  private AiffInfo readInfos(AudioInputStream ais, boolean aifc) throws AudioFormatException, IOException {
     findChunk(ais, "COMM");
+    short numChannels = ais.read16bitBE();
+    int numFrames = ais.read32bitBE();
+    short bitsPerSample = ais.read16bitBE();
+    double sampleRate = ais.readExtendedFloatBE();
+
+    String compression;
+    boolean bigEndian = true;
+    if(aifc) {
+      compression = ais.readString(4);
+      if("sowt".equals(compression)) {
+        bigEndian = false;
+      }
+    } else {
+      compression = "NONE";
+    }
+
     return AiffInfo.builder()
         .name(ais.getName())
-        .numChannels(ais.read16bitBE())
-        .numFrames(ais.read32bitBE())
-        .bitsPerSample(ais.read16bitBE())
-        .sampleRate((float) ais.readExtendedFloatBE())
+        .numChannels(numChannels)
+        .numFrames(numFrames)
+        .bitsPerSample(bitsPerSample)
+        .sampleRate((float) sampleRate)
+        .compression(compression)
+        .bigEndian(bigEndian)
         .build();
   }
 

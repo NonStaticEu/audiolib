@@ -19,7 +19,7 @@ import lombok.Getter;
 @Getter
 public enum AudioFileType {
 
-  AIFF("Aiff", List.of("aif", "aiff"), List.of("audio/x-aiff")),
+  AIFF("Aiff", List.of("aif", "aiff", "aifc"), List.of("audio/x-aiff")),
   WAVE("Wave", List.of("wav", "wave"), List.of("audio/wav", "audio/x-wav", "audio/vnd.wav")),
   MP3("MP3", List.of("mp3"), List.of("audio/mpeg")), // before MP2 because of mimeTypeToExtension
   MP2("MP2", List.of("mp2"), List.of("audio/mpeg")),
