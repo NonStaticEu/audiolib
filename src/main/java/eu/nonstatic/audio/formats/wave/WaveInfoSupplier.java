@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
 
   /**
-   * https://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
+   * <a href="https://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html">...</a>
    */
   public WaveInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);

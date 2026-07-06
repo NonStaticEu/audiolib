@@ -26,7 +26,7 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
   private static final int STREAMINFO_BLOCK_TYPE = 0;
 
   /**
-   * https://xiph.org/flac/format.html#metadata_block_streaminfo
+   * <a href="https://xiph.org/flac/format.html#metadata_block_streaminfo">...</a>
    */
   public FlacInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);

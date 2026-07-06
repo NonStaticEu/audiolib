@@ -81,8 +81,8 @@ public class AudioInputStream extends BufferedInputStream {
 
   /**
    * Very bad conversion for 80 bit IEEE Standard 754 floating point number (Standard Apple Numeric Environment [SANE] data type Extended) taken from
-   * https://stackoverflow.com/a/35670539/6693204 but that will do!
-   * https://en.wikipedia.org/wiki/Extended_precision#x86_Extended_Precision_Format
+   * <a href="https://stackoverflow.com/a/35670539/6693204">...</a> but that will do!
+   * <a href="https://en.wikipedia.org/wiki/Extended_precision#x86_Extended_Precision_Format">...</a>
    * @return the converted float
    */
   public double readExtendedFloatBE() throws IOException {

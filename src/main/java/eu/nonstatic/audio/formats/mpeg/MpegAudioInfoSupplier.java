@@ -180,12 +180,12 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   }
 
   /**
-   * https://mutagen-specs.readthedocs.io/en/latest/id3/id3v2.4.0-structure.html
-   * http://www.datavoyage.com/mpgscript/mpeghdr.htm
-   * https://phoxis.org/2010/05/08/synch-safe/
-   * Lyrics custom tag: found some intel in the code: https://sourceforge.net/projects/mp3diags/
+   * <a href="https://mutagen-specs.readthedocs.io/en/latest/id3/id3v2.4.0-structure.html">...</a>
+   * <a href="http://www.datavoyage.com/mpgscript/mpeghdr.htm">...</a>
+   * <a href="https://phoxis.org/2010/05/08/synch-safe/">...</a>
+   * Lyrics custom tag: found some intel in the code: <a href="https://sourceforge.net/projects/mp3diags/">...</a>
    * Example: LYRICSBEGININD0000200ETT00040Jam & Spoon - Tripomatic Fairytales 2002CRC0000835FAE1F2000085LYRICS200
-   * https://en.wikipedia.org/wiki/APE_tag
+   * <a href="https://en.wikipedia.org/wiki/APE_tag">...</a>
    * We're assuming there is no weird sync/alignment issue
    */
   public MpegInfo getInfos(InputStream is, String name) throws AudioInfoException, IOException {
@@ -276,7 +276,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   }
 
   /**
-   * @param ais
+   * @param ais the stream
    * @return the frame details or null if what's read looks like no frame
    * @throws MalformedFrameException when the frame header looks unhealthy
    * @throws IOException read error or EOF while skipping over a frame
