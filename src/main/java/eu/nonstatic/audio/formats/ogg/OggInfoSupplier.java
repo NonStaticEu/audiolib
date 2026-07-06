@@ -247,7 +247,7 @@ public class OggInfoSupplier implements AudioInfoSupplier<OggInfo> {
         ais.reset();
         return skipped;
       } else {
-        ais.skipNBytesBackport(1);
+        ais.skipNBytes(1);
       }
     }
   }

@@ -72,16 +72,16 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
         short numChannels = ais.read16bitLE();
         builder.numChannels(numChannels); // num channels
         builder.sampleRate(ais.read32bitLE());
-        ais.skipNBytesBackport(4); // data rate
+        ais.skipNBytes(4); // data rate
         short frameSize = ais.read16bitLE(); //  numChannels * bitsPerSample/8
         builder.bitsPerSample((short)((frameSize << 3)/numChannels));
-        ais.skipNBytesBackport(2); // bits per sample
-        ais.skipNBytesBackport((long)ckSize - 16);
+        ais.skipNBytes(2); // bits per sample
+        ais.skipNBytes((long)ckSize - 16);
       } else if ("data".equals(ckName)) {
         builder.audioSize(ckSize);
         return builder.build();
       } else {
-        ais.skipNBytesBackport(ckSize);
+        ais.skipNBytes(ckSize);
       }
     }
     throw new AudioFormatException(ais.getName(), ais.location(), AudioFileType.WAVE, "No data chunk");
