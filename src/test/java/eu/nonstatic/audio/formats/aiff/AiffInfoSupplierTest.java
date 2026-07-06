@@ -32,10 +32,21 @@ class AiffInfoSupplierTest implements AudioTestBase {
   AiffInfoSupplier infoSupplier = new AiffInfoSupplier();
 
   @Test
-  void should_give_infos() throws IOException, AudioInfoException {
+  void should_give_infos_aiff() throws IOException, AudioInfoException {
     AiffInfo aiffInfo = infoSupplier.getInfos(AIFF_URL.openStream(), AIFF_NAME);
     assertEquals(AudioFileType.AIFF, aiffInfo.getType());
     assertEquals(Duration.ofMillis(30407L), aiffInfo.getDuration());
+    assertEquals("NONE", aiffInfo.getCompression());
+    assertTrue(aiffInfo.isBigEndian());
+    assertTrue(aiffInfo.getIssues().isEmpty());
+  }
+
+  @Test
+  void should_give_infos_aifc() throws IOException, AudioInfoException {
+    AiffInfo aiffInfo = infoSupplier.getInfos(AIFC_URL.openStream(), AIFC_NAME);
+    assertEquals(AudioFileType.AIFF, aiffInfo.getType());
+    assertEquals("alaw", aiffInfo.getCompression());
+    assertTrue(aiffInfo.isBigEndian());
     assertTrue(aiffInfo.getIssues().isEmpty());
   }
 
@@ -79,7 +90,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
     assertEquals(1, aie.getIssues().size());
-    assertEquals("No AIFF id at 4: /audio/Arpeggio.aiff", aie.getIssues().get(0).getCause().getMessage());
+    assertEquals("No AIFF/AIFC id at 4: /audio/Arpeggio.aiff", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test
