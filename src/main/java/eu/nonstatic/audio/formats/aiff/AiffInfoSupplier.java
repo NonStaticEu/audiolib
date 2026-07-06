@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
 
   /**
-   * https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/Docs/AIFF-1.3.pdf
+   * <a href="https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/AIFF/Docs/AIFF-1.3.pdf">...</a>
    */
   public AiffInfo getInfos(InputStream is, String name) throws IOException, AudioInfoException {
     AudioInputStream ais = new AudioInputStream(is, name);
