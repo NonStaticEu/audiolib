@@ -52,24 +52,24 @@ public class ApeInfoSupplier implements AudioInfoSupplier<ApeInfo> {
       int sampleRate;
 
       if (version >= 3980) {
-        ais.skipNBytesBackport(2); // padding1
+        ais.skipNBytes(2); // padding1
         int descriptorLength = ais.read32bitLE();
-        ais.skipNBytesBackport(4); // headerLength
-        ais.skipNBytesBackport(4); // seekTableLength
-        ais.skipNBytesBackport(4); // wavHeaderLength
-        ais.skipNBytesBackport(4); // audioDataLength
-        ais.skipNBytesBackport(4); // audioDataLengthHigh
-        ais.skipNBytesBackport(4); // wavTailLength
+        ais.skipNBytes(4); // headerLength
+        ais.skipNBytes(4); // seekTableLength
+        ais.skipNBytes(4); // wavHeaderLength
+        ais.skipNBytes(4); // audioDataLength
+        ais.skipNBytes(4); // audioDataLengthHigh
+        ais.skipNBytes(4); // wavTailLength
         ais.readNBytesStrict(16); // md5
 
         /* Skip any unknown bytes at the end of the descriptor.
            This is for future compatibility */
         if (descriptorLength > 52) {
-          ais.skipNBytesBackport(descriptorLength - 52);
+          ais.skipNBytes(descriptorLength - 52);
         }
 
         compressionType = ais.read16bitLE();
-        ais.skipNBytesBackport(2); // formatFlags
+        ais.skipNBytes(2); // formatFlags
         blocksPerFrame = ais.read32bitLE();
         finalFrameBlocks = ais.read32bitLE();
         totalFrames = ais.read32bitLE();
@@ -81,8 +81,8 @@ public class ApeInfoSupplier implements AudioInfoSupplier<ApeInfo> {
         formatFlags = ais.read16bitLE();
         numChannels = ais.read16bitLE();
         sampleRate = ais.read32bitLE();
-        ais.skipNBytesBackport(4); // wavHeaderLength
-        ais.skipNBytesBackport(4); // wavTailLength
+        ais.skipNBytes(4); // wavHeaderLength
+        ais.skipNBytes(4); // wavTailLength
         totalFrames = ais.read32bitLE();
         finalFrameBlocks = ais.read32bitLE();
 

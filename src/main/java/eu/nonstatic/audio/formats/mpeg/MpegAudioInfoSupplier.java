@@ -229,7 +229,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
       int size = read32bitSynchSafe(ais);
       // (flags & 0x2) != 0; // extended
       boolean footer = (flags & 0x8) != 0;
-      ais.skipNBytesBackport((long)size + (footer ? 10 : 0));
+      ais.skipNBytes((long)size + (footer ? 10 : 0));
     } else { // no ID3v2
       ais.reset();
     }
@@ -335,7 +335,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     }
 
     //No, we're not going to retry and get as much data as possible in case of an EOF
-    ais.skipNBytesBackport((long)details.frameLength - 4); // 4 is the header we've already read
+    ais.skipNBytes((long)details.frameLength - 4); // 4 is the header we've already read
     return details;
   }
 
@@ -351,7 +351,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
       if (isMpegFrame(header)) {
         return skipped;
       } else {
-        ais.skipNBytesBackport(1);
+        ais.skipNBytes(1);
       }
     }
   }

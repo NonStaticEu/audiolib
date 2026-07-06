@@ -51,8 +51,8 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
     long location = ais.location();
     int blockType = ais.readStrict() & 0x7;
     if (blockType == STREAMINFO_BLOCK_TYPE) {
-      ais.skipNBytesBackport(3); // length
-      ais.skipNBytesBackport(10);
+      ais.skipNBytes(3); // length
+      ais.skipNBytes(10);
       long samplingInfo = ais.read64bitBE();
 
       int samplingRate = (int) (samplingInfo >> 44);

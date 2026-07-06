@@ -116,30 +116,6 @@ public class AudioInputStream extends BufferedInputStream {
     }
   }
 
-  /**
-   * This is a skipNBytes implementation for streams compiled before Java 12
-   * @param n
-   * @throws IOException
-   */
-  public void skipNBytesBackport(long n) throws IOException {
-    while (n > 0) {
-      long ns = skip(n);
-      if (ns > 0 && ns <= n) {
-        // adjust number to skip
-        n -= ns;
-      } else if (ns == 0) { // no bytes skipped
-        // read one byte to check for EOS
-        if (read() == -1) {
-          throw new EOFException();
-        }
-        // one byte read so decrement number to skip
-        n--;
-      } else { // skipped negative or too many bytes
-        throw new IOException("Unable to skip exactly");
-      }
-    }
-  }
-
   public long location() {
     return location;
   }

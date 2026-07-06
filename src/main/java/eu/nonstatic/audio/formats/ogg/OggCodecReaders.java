@@ -59,7 +59,7 @@ public class OggCodecReaders {
       byte[] codecHeader = reader.getHeader();
       if (Arrays.equals(codecHeader, 0, codecHeader.length, paddedHeader, 0, codecHeader.length)) {
         ais.reset();
-        ais.skipNBytesBackport(codecHeader.length);
+        ais.skipNBytes(codecHeader.length);
         return reader;
       }
     }

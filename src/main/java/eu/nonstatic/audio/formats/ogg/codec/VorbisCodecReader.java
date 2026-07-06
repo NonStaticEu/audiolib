@@ -102,7 +102,7 @@ public class VorbisCodecReader implements OggCodecReader<OggVorbisInfo> {
   private void readDataPacket(AudioInputStream ais, OggVorbisInfo info, OggPage.PacketSegment segment) throws IOException {
     // TODO for more duration accuracy we could use blocksize mumbo jumbo https://xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-720004.3
     int dataLength = segment.getSize() - PACKET_TYPE_LENGTH;
-    ais.skipNBytesBackport(dataLength);
+    ais.skipNBytes(dataLength);
     info.appendBytes(dataLength);
   }
 
@@ -164,18 +164,18 @@ public class VorbisCodecReader implements OggCodecReader<OggVorbisInfo> {
     long startLocation = ais.location() - HEADER_LENGTH;
 
     int vendorLength = ais.read32bitLE();
-    ais.skipNBytesBackport(vendorLength); // vendor
+    ais.skipNBytes(vendorLength); // vendor
     int commentCount = ais.read32bitLE();
     for (int i = 0; i < commentCount; i++) {
       int commentLength = ais.read32bitLE();
-      ais.skipNBytesBackport(commentLength); // comment
+      ais.skipNBytes(commentLength); // comment
     }
     ais.readStrict(); // framingFlag
 
-    ais.skipNBytesBackport(segment.getSize() - (ais.location() - startLocation));
+    ais.skipNBytes(segment.getSize() - (ais.location() - startLocation));
   }
 
   private void readSetupPacket(AudioInputStream ais,OggPage.PacketSegment segment) throws IOException {
-    ais.skipNBytesBackport((long)segment.getSize() - HEADER_LENGTH);
+    ais.skipNBytes((long)segment.getSize() - HEADER_LENGTH);
   }
 }

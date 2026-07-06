@@ -70,7 +70,7 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
         if (name.equals(ckName)) {
           break;
         } else {
-          ais.skipNBytesBackport(ckSize);
+          ais.skipNBytes(ckSize);
         }
       }
     } catch(EOFException e) {
