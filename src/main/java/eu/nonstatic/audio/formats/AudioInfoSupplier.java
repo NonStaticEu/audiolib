@@ -15,18 +15,18 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public interface AudioInfoSupplier<I extends AudioInfo> {
+public interface AudioInfoSupplier<F extends AudioFormatEx> {
 
-  default I getInfos(File file) throws AudioInfoException, IOException {
+  default F getInfos(File file) throws AudioInfoException, IOException {
     return getInfos(file.toPath());
   }
 
-  default I getInfos(Path file) throws AudioInfoException, IOException {
+  default F getInfos(Path file) throws AudioInfoException, IOException {
     String name = file.toString();
     try(InputStream is = Files.newInputStream(file)) {
       return getInfos(is, name);
     }
   }
 
-  I getInfos(InputStream is, String name) throws AudioInfoException, IOException;
+  F getInfos(InputStream is, String name) throws AudioInfoException, IOException;
 }

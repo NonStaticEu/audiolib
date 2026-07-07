@@ -10,17 +10,24 @@
 package eu.nonstatic.audio.formats.ogg;
 
 import eu.nonstatic.audio.AudioFileType;
-import eu.nonstatic.audio.formats.AudioInfo;
+import eu.nonstatic.audio.AudioIssue;
+import eu.nonstatic.audio.formats.AudioFormatEx;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NonNull;
 
 @Getter
-public abstract class OggInfo extends OggIssues implements AudioInfo {
+public abstract class OggInfo extends AudioFormatEx implements Cloneable {
 
-  protected OggInfo(String name, int serialNumber) {
+  protected OggInfo(String name, Encoding encoding, float sampleRate, int sampleSizeInBits, int channels, int frameSize, float frameRate, boolean bigEndian, int serialNumber) {
+    super(encoding, sampleRate, sampleSizeInBits, channels, frameSize, frameRate, bigEndian);
     this.name = name;
     this.serialNumber = serialNumber;
   }
+
 
   private final String name;
   private final int serialNumber;
@@ -30,6 +37,7 @@ public abstract class OggInfo extends OggIssues implements AudioInfo {
   protected long firstGranule;
   protected long lastGranule; // duration  = (last-first)/samplerate
   protected boolean incomplete;
+  protected List<AudioIssue> issues = new ArrayList<>(); // location => bytes skipped
 
 
   public String getName() {
@@ -43,6 +51,14 @@ public abstract class OggInfo extends OggIssues implements AudioInfo {
 
   public abstract OggCodec getCodec();
 
+  public List<AudioIssue> getIssues() {
+    return Collections.unmodifiableList(issues);
+  }
+
+  protected void addIssue(@NonNull AudioIssue issue) {
+    issues.add(issue);
+  }
+
   protected void updateGranulePos(long granulePos) {
     if(!granuled) {
       firstGranule = granulePos;
@@ -53,14 +69,14 @@ public abstract class OggInfo extends OggIssues implements AudioInfo {
   public abstract boolean isEmpty();
 
 
-
-  protected abstract OggInfo copy();
-
-  protected final void into(OggInfo oggInfo) {
-    oggInfo.granuled = granuled;
-    oggInfo.firstGranule = firstGranule;
-    oggInfo.lastGranule = lastGranule;
-    oggInfo.incomplete = incomplete;
-    super.into(oggInfo);
+  @Override
+  public OggInfo clone() {
+    try {
+      OggInfo clone = (OggInfo) super.clone();
+      clone.issues = new ArrayList<>(clone.issues);
+      return clone;
+    } catch (CloneNotSupportedException e) {
+      throw new AssertionError();
+    }
   }
 }

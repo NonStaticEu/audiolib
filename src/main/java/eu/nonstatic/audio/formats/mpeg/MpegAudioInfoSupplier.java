@@ -206,7 +206,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     if(frameInfos.isEmpty()) {
       throw new AudioInfoException(name, AudioIssue.format(new AudioFormatException(name, framesLocation, type, "Could not find a single frame")));
     }
-    return new MpegInfo(name, type, frameInfos.sampleCounts, frameInfos.audioIssues);
+    return new MpegInfo(name, type, frameInfos.channelsCounts, frameInfos.sampleCounts, frameInfos.audioIssues);
   }
 
   private void findData(AudioInputStream ais) throws IOException {
@@ -392,6 +392,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   }
 
   static final class FrameDetails {
+
     int version;
     int layer;
     short numChannels;
@@ -404,10 +405,12 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   static class FrameInfos {
 
     final Map<Integer, Long> sampleCounts = new HashMap<>();
+    final Map<Short, Integer> channelsCounts = new HashMap<>();
     final List<AudioIssue> audioIssues = new ArrayList<>();
 
     void appendFrame(FrameDetails details) {
       sampleCounts.compute(details.sampleRate, (sampleRate, sampleCount) -> (sampleCount == null ? 0 : sampleCount) + details.sampleCount);
+      channelsCounts.compute(details.numChannels, (numChannels, channelsCount) -> (channelsCount == null ? 1 : channelsCount+1));
     }
 
     boolean isEmpty() {

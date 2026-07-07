@@ -7,28 +7,12 @@
  *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
  */
-package eu.nonstatic.audio.formats.ogg;
+package eu.nonstatic.audio.formats;
 
-import eu.nonstatic.audio.AudioIssue;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import lombok.NonNull;
+import javax.sound.sampled.AudioFormat;
 
-public abstract class OggIssues {
-  protected final List<AudioIssue> audioIssues = new ArrayList<>(); // location => bytes skipped
-
-  public List<AudioIssue> getIssues() {
-    return Collections.unmodifiableList(audioIssues);
-  }
-
-  public void addIssue(@NonNull AudioIssue issue) {
-    audioIssues.add(issue);
-  }
-
-
-  protected final void into(OggIssues oggIssues) {
-    oggIssues.audioIssues.clear();
-    oggIssues.audioIssues.addAll(audioIssues);
-  }
+public abstract class AudioFormatEx extends AudioFormat implements AudioInfo {
+    protected AudioFormatEx(Encoding encoding, float sampleRate, int sampleSizeInBits, int channels, int frameSize, float frameRate, boolean bigEndian) {
+        super(encoding, sampleRate, sampleSizeInBits, channels, frameSize, frameRate, bigEndian);
+    }
 }

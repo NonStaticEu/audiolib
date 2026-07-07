@@ -51,7 +51,7 @@ public class XmInfoSupplier implements AudioInfoSupplier<XmInfo> {
     long location = ais.location();
     int oneA = ais.readStrict();
     if(oneA != 0x1a) {
-      throw new AudioFormatException(ais.getName(), location, AudioFileType.XM, "No 0x1A t pos 20");
+      throw new AudioFormatException(ais.getName(), location, AudioFileType.XM, "No 0x1A at pos 20");
     }
 
     String trackerName = readPaddedString(ais, TRACKER_NAME_LENGTH, TRACKER_PADDING_VALUE); // trackerName
@@ -78,7 +78,7 @@ public class XmInfoSupplier implements AudioInfoSupplier<XmInfo> {
         .length(songLength)
         .bpm(bpm)
         .tempo(tempo)
-        .numChannels(channels)
+        .channels(channels)
         .instruments(instruments)
         .build();
   }

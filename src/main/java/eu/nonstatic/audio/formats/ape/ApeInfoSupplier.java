@@ -47,7 +47,7 @@ public class ApeInfoSupplier implements AudioInfoSupplier<ApeInfo> {
       int blocksPerFrame;
       int finalFrameBlocks;
       int totalFrames;
-      short bitsPerSample;
+      short sampleSizeInBits;
       short numChannels;
       int sampleRate;
 
@@ -73,7 +73,7 @@ public class ApeInfoSupplier implements AudioInfoSupplier<ApeInfo> {
         blocksPerFrame = ais.read32bitLE();
         finalFrameBlocks = ais.read32bitLE();
         totalFrames = ais.read32bitLE();
-        bitsPerSample = ais.read16bitLE();
+        sampleSizeInBits = ais.read16bitLE();
         numChannels = ais.read16bitLE();
         sampleRate = ais.read32bitLE();
       } else {
@@ -87,11 +87,11 @@ public class ApeInfoSupplier implements AudioInfoSupplier<ApeInfo> {
         finalFrameBlocks = ais.read32bitLE();
 
         if ((formatFlags & MAC_FORMAT_FLAG_8_BIT) != 0) {
-          bitsPerSample = 8;
+          sampleSizeInBits = 8;
         } else if ((formatFlags & MAC_FORMAT_FLAG_24_BIT) != 0) {
-          bitsPerSample = 24;
+          sampleSizeInBits = 24;
         } else {
-          bitsPerSample = 16;
+          sampleSizeInBits = 16;
         }
 
         if (version >= 3950) {
@@ -107,12 +107,12 @@ public class ApeInfoSupplier implements AudioInfoSupplier<ApeInfo> {
           .name(ais.getName())
           .version(version)
           .compressionType(compressionType)
-          .numChannels(numChannels)
+          .channels(numChannels)
           .sampleRate(sampleRate)
-          .bitsPerSample(bitsPerSample)
+          .sampleSizeInBits(sampleSizeInBits)
           .blocksPerFrame(blocksPerFrame)
           .finalFrameBlocks(finalFrameBlocks)
-          .numFrames(totalFrames)
+          .frameCount(totalFrames)
           .build();
     } catch(AudioFormatException e) {
       throw new AudioInfoException(e);

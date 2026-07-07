@@ -17,11 +17,11 @@ public final class AudioInfos {
 
   private AudioInfos() {}
 
-  public static AudioInfo get(Path path) throws AudioInfoException, IOException {
+  public static AudioFormatEx get(Path path) throws AudioInfoException, IOException {
     return AudioInfoSuppliers.getByFileName(path.getFileName().toString()).getInfos(path);
   }
 
-  public static AudioInfo get(File file) throws AudioInfoException, IOException {
+  public static AudioFormatEx get(File file) throws AudioInfoException, IOException {
     return AudioInfoSuppliers.getByFileName(file.getName()).getInfos(file);
   }
 }

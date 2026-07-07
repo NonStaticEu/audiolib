@@ -10,20 +10,29 @@
 package eu.nonstatic.audio.formats.aiff;
 
 import eu.nonstatic.audio.AudioFileType;
-import eu.nonstatic.audio.formats.AudioInfo;
-import java.time.Duration;
+import eu.nonstatic.audio.formats.AudioFormatEx;
 import lombok.Builder;
 import lombok.Getter;
 
-@Getter @Builder
-public class AiffInfo implements AudioInfo {
+import java.time.Duration;
+import java.util.Locale;
+
+@Getter
+public class AiffInfo extends AudioFormatEx {
   private final String name;
-  private final short numChannels;
-  private final float sampleRate;
-  private final short bitsPerSample;
-  private final int numFrames;
+  private final int frameCount;
   private final String compression;
   private final boolean bigEndian;
+
+  @Builder
+  public AiffInfo(String name, int channels, float sampleRate, int sampleSizeInBits, int frameCount, String compression, boolean bigEndian) {
+    super(new Encoding(compression.toUpperCase(Locale.ROOT)), sampleRate,
+        sampleSizeInBits, channels, (sampleSizeInBits * channels)/8, sampleRate, bigEndian);
+    this.name = name;
+    this.frameCount = frameCount;
+    this.compression = compression;
+    this.bigEndian = bigEndian;
+  }
 
   @Override
   public AudioFileType getType() {
@@ -32,6 +41,6 @@ public class AiffInfo implements AudioInfo {
 
   @Override
   public Duration getDuration() {
-    return Duration.ofMillis(Math.round((numFrames * 1000.0) / sampleRate));
+    return Duration.ofMillis(Math.round((frameCount * 1000.0) / sampleRate));
   }
 }

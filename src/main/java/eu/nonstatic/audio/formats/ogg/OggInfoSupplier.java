@@ -64,8 +64,8 @@ public class OggInfoSupplier implements AudioInfoSupplier<OggInfo> {
           });
 
       // appending the global issues to a copy
-      OggInfo copy = oggInfo.copy();
-      copy.audioIssues.addAll(streamInfos.audioIssues);
+      OggInfo copy = oggInfo.clone();
+      copy.issues.addAll(streamInfos.issues);
       return copy;
     } catch(AudioFormatException e) {
       throw new AudioInfoException(e);

@@ -72,11 +72,11 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
         short format = ais.read16bitLE();
         builder.format(format);
         short numChannels = ais.read16bitLE();
-        builder.numChannels(numChannels); // num channels
+        builder.channels(numChannels); // num channels
         builder.sampleRate(ais.read32bitLE());
         ais.skipNBytes(4); // data rate
-        ais.skipNBytes(2); // data block size: numChannels * bitsPerSample/8
-        builder.bitsPerSample(ais.read16bitLE());
+        ais.skipNBytes(2); // data block size: numChannels * sampleSizeInBits/8
+        builder.sampleSizeInBits(ais.read16bitLE());
         if(ais.chunkLeft() > 0 && ais.read16bitLE() > 0 && format != WaveFormat.PCM.value) {
           ais.skipNBytes(6); // wValidBitsPerSample & dwChannelMask
           builder.subFormat(ais.read16bitLE());

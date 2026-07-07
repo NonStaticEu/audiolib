@@ -9,14 +9,19 @@
  */
 package eu.nonstatic.audio.formats.ogg.codec;
 
+import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.formats.ogg.OggCodec;
 import eu.nonstatic.audio.formats.ogg.OggInfo;
 import java.time.Duration;
+import javax.sound.sampled.AudioFormat;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 
 public class OggVorbisInfo extends OggInfo {
+
+  private static final AudioFormat.Encoding ENCODING = new AudioFormat.Encoding("VORBISENC");
 
   private long bitCount; // channels/bitRate/sampleRate => bits
 
@@ -24,7 +29,9 @@ public class OggVorbisInfo extends OggInfo {
   private final SamplingDetails samplingDetails;
 
   public OggVorbisInfo(String name, int serialNumber, SamplingDetails samplingDetails) {
-    super(name, serialNumber);
+    super(name, ENCODING, samplingDetails.sampleRate, -1,
+            samplingDetails.channels, 1, (float) samplingDetails.bitRate /8,
+            false, serialNumber);
     this.samplingDetails = samplingDetails;
   }
 
@@ -42,37 +49,28 @@ public class OggVorbisInfo extends OggInfo {
   }
 
   @Override
-  public float getSampleRate() {
-    return samplingDetails.sampleRate;
-  }
-
-  @Override
   public Duration getDuration() {
     double seconds = (lastGranule - firstGranule) / (double) samplingDetails.sampleRate;
     return Duration.ofNanos(Math.round(seconds * 1_000_000_000.0));
   }
 
   /**
-   * Approximate, as the bitRate is
+   * Approximate, as the bitRate is mostly informational
    */
   public Duration getBitCountDuration() {
     double seconds = bitCount / (double) samplingDetails.bitRate;
     return Duration.ofNanos(Math.round(seconds * 1_000_000_000.0));
   }
 
-  @Override
-  public OggVorbisInfo copy() {
-    OggVorbisInfo copy = new OggVorbisInfo(getName(), getSerialNumber(), getSamplingDetails());
-    copy.bitCount = bitCount;
-    into(copy);
-    return copy;
+  protected void addIssue(@NonNull AudioIssue issue) {
+    super.addIssue(issue);
   }
 
   @Builder
   @EqualsAndHashCode
   public static final class SamplingDetails {
     private int version;
-    private short numChannels;
+    private short channels;
     private int bitRate; // just a hint as the doc says
     private int sampleRate;
   }

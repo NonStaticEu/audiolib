@@ -10,22 +10,34 @@
 package eu.nonstatic.audio.formats.ape;
 
 import eu.nonstatic.audio.AudioFileType;
-import eu.nonstatic.audio.formats.AudioInfo;
-import java.time.Duration;
+import eu.nonstatic.audio.formats.AudioFormatEx;
 import lombok.Builder;
 import lombok.Getter;
 
-@Getter @Builder
-public class ApeInfo implements AudioInfo {
+import java.time.Duration;
+
+@Getter
+public class ApeInfo extends AudioFormatEx {
+  private static final Encoding ENCODING = new Encoding(AudioFileType.APE.name());
+
   private final String name;
   private final short version;
   private final short compressionType;
-  private final short numChannels;
-  private final float sampleRate;
-  private final short bitsPerSample;
   private final int finalFrameBlocks;
   private final int blocksPerFrame;
-  private final int numFrames;
+  private final int frameCount;
+
+  @Builder
+  public ApeInfo(String name, short version, short compressionType, int channels, float sampleRate, int sampleSizeInBits, int finalFrameBlocks, int blocksPerFrame, int frameCount) {
+    super(ENCODING, sampleRate,
+        sampleSizeInBits, channels, -1, -1.f, false);
+    this.name = name;
+    this.version = version;
+    this.compressionType = compressionType;
+    this.finalFrameBlocks = finalFrameBlocks;
+    this.blocksPerFrame = blocksPerFrame;
+    this.frameCount = frameCount;
+  }
 
   @Override
   public AudioFileType getType() {
@@ -35,8 +47,8 @@ public class ApeInfo implements AudioInfo {
   @Override
   public Duration getDuration() {
     int numSamples = finalFrameBlocks;
-    if(numFrames > 1) {
-      numSamples += blocksPerFrame * (numFrames-1);
+    if(frameCount > 1) {
+      numSamples += blocksPerFrame * (frameCount-1);
     }
     return Duration.ofNanos((long) (1_000_000_000L * numSamples / sampleRate));
   }

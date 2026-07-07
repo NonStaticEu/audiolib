@@ -59,15 +59,13 @@ public class VorbisCodecReader implements OggCodecReader<OggVorbisInfo> {
    */
   @Override
   public OggVorbisInfo readBos(AudioInputStream ais, int serialNumber, OggPage.PacketSegment segment) throws UnsupportedCodecException, IOException {
-    AudioIssue sizeIssue = null;
-    if(segment.getSize() != 23) {
-       sizeIssue = AudioIssue.other(ais.location(), Map.of(META_BOS_SEGMENT_SIZE, segment.getSize()));
-      // Just a warning. Maybe things will work out in the end
-    }
+    int segmentSize = segment.getSize();
     SamplingDetails samplingDetails = readIdentificationPacket(ais, serialNumber, segment);
     OggVorbisInfo vorbisInfo = new OggVorbisInfo(ais.getName(), serialNumber, samplingDetails);
 
-    if(sizeIssue != null) {
+    if(segmentSize != 23) {
+      // Just a warning. Maybe things will work out in the end
+      AudioIssue sizeIssue = AudioIssue.other(ais.location(), Map.of(META_BOS_SEGMENT_SIZE, segmentSize));
       vorbisInfo.addIssue(sizeIssue);
     }
     return vorbisInfo;
@@ -115,7 +113,7 @@ public class VorbisCodecReader implements OggCodecReader<OggVorbisInfo> {
   }
 
   /**
-   * Caution: https://xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-630004.2.2
+   * Caution: <a href="https://xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-630004.2.2">...</a>
    * "The bitrate fields are used only as hints.
    * The nominal bitrate field especially may be considerably off in purely VBR streams."
    */
@@ -134,7 +132,7 @@ public class VorbisCodecReader implements OggCodecReader<OggVorbisInfo> {
 
     return SamplingDetails.builder()
         .version(version)
-        .numChannels(numChannels)
+        .channels(numChannels)
         .sampleRate(sampleRate)
         .bitRate(bitRate)
         .build();

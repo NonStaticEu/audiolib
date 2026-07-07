@@ -10,7 +10,6 @@
 package eu.nonstatic.audio.formats.aiff;
 
 import eu.nonstatic.audio.AudioFileType;
-import eu.nonstatic.audio.formats.AudioInfoException;
 import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
 import eu.nonstatic.audio.AudioTestBase;
@@ -21,6 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+
+import eu.nonstatic.audio.formats.AudioInfoException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -164,6 +165,6 @@ class AiffInfoSupplierTest implements AudioTestBase {
       .putInt(0);
 
     AiffInfo info = infoSupplier.getInfos(new ByteArrayInputStream(bb.array()), AIFF_NAME);
-    assertEquals(2, info.getNumChannels());
+    assertEquals(2, info.getChannels());
   }
 }

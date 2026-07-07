@@ -57,15 +57,15 @@ public class FlacInfoSupplier implements AudioInfoSupplier<FlacInfo> {
 
       int samplingRate = (int) (samplingInfo >> 44);
       int numChannels = (((int) (samplingInfo >> 41)) & 0x7) + 1;
-      int bitsPerSample = (((int) (samplingInfo >> 36)) & 0x1F) + 1;
+      int sampleSizeInBits = (((int) (samplingInfo >> 36)) & 0x1F) + 1;
       long totalSamples = (samplingInfo & 0xFFFFFFFFFL);
 
       return FlacInfo.builder()
           .name(ais.getName())
           .sampleRate(samplingRate)
-          .numChannels((short)numChannels)
-          .bitsPerSample((short)bitsPerSample)
-          .numFrames(totalSamples)
+          .channels((short)numChannels)
+          .sampleSizeInBits((short)sampleSizeInBits)
+          .frameCount((int)totalSamples)
           .build();
     } else {
       throw new AudioFormatException(ais.getName(), location, AudioFileType.FLAC, "STREAMINFO block not found");

@@ -25,9 +25,10 @@ public interface AudioInfo {
 
   /**
    * @return the number of samples in the whole file (number of frames in a non-compressed format)
+   * Override if the frame count is known otherwise (typically ogg/mpeg)
    */
   default int getFrameCount() {
-    return (int) (getSampleRate() * getDuration().toNanos() / 1_000_000_000);
+    return (int) (getSampleRate() * getDuration().toNanos() / NANOS_PER_SECOND);
   }
 
   default List<AudioIssue> getIssues() {

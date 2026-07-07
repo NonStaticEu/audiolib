@@ -9,24 +9,22 @@
  */
 package eu.nonstatic.audio.formats.wave;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import eu.nonstatic.audio.AudioFileType;
 import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
 import eu.nonstatic.audio.AudioTestBase;
 import eu.nonstatic.audio.FaultyStream;
 import eu.nonstatic.audio.formats.AudioInfoException;
+import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Duration;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class WaveInfoSupplierTest implements AudioTestBase {
 
@@ -64,9 +62,9 @@ class WaveInfoSupplierTest implements AudioTestBase {
 
     WaveInfo waveInfo = infoSupplier.getInfos(new ByteArrayInputStream(bb.array()), WAVE_NAME);
     assertEquals(WaveFormat.PCM.getValue(), waveInfo.getFormat());
-    assertEquals(2, waveInfo.getNumChannels());
+    assertEquals(2, waveInfo.getChannels());
     assertEquals(44100f, waveInfo.getSampleRate());
-    assertEquals(16, waveInfo.getBitsPerSample());
+    assertEquals(16, waveInfo.getSampleSizeInBits());
     assertEquals(1000, waveInfo.getAudioSize());
     assertNull(waveInfo.getSubFormat());
     assertTrue(waveInfo.getIssues().isEmpty());
@@ -97,9 +95,9 @@ class WaveInfoSupplierTest implements AudioTestBase {
 
     WaveInfo waveInfo = infoSupplier.getInfos(new ByteArrayInputStream(bb.array()), WAVE_NAME);
     assertEquals(WaveFormat.EXTENSIBLE.getValue(), waveInfo.getFormat());
-    assertEquals(2, waveInfo.getNumChannels());
+    assertEquals(2, waveInfo.getChannels());
     assertEquals(48000f, waveInfo.getSampleRate());
-    assertEquals(24, waveInfo.getBitsPerSample());
+    assertEquals(24, waveInfo.getSampleSizeInBits());
     assertEquals(2000, waveInfo.getAudioSize());
     assertEquals(WaveFormat.PCM.getValue(), waveInfo.getSubFormat());
     assertTrue(waveInfo.getIssues().isEmpty());

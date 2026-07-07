@@ -10,22 +10,30 @@
 package eu.nonstatic.audio.formats.wave;
 
 import eu.nonstatic.audio.AudioFileType;
-import eu.nonstatic.audio.formats.AudioInfo;
-import java.time.Duration;
+import eu.nonstatic.audio.formats.AudioFormatEx;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 
-@Getter @Builder
-public final class WaveInfo implements AudioInfo {
+import java.time.Duration;
+
+@Getter
+public final class WaveInfo extends AudioFormatEx {
 
   private final @NonNull String name;
   private final short format;
   private final Short subFormat;
-  private final short numChannels;
-  private final float sampleRate;
-  private final short bitsPerSample;
   private final int audioSize;
+
+  @Builder
+  public WaveInfo(@NonNull String name, short format, Short subFormat, int channels, float sampleRate, int sampleSizeInBits, int audioSize) {
+    super(getEncoding(format, subFormat, sampleSizeInBits), sampleRate, sampleSizeInBits, channels,
+            (sampleSizeInBits * channels)/8, sampleRate, false);
+    this.name = name;
+    this.format = format;
+    this.subFormat = subFormat;
+    this.audioSize = audioSize;
+  }
 
   @Override
   public AudioFileType getType() {
@@ -34,6 +42,18 @@ public final class WaveInfo implements AudioInfo {
 
   @Override
   public Duration getDuration() {
-    return Duration.ofMillis(Math.round((audioSize * 8 * 1000.0) / (numChannels * sampleRate * bitsPerSample)));
+    return Duration.ofMillis(Math.round((audioSize * 8 * 1000.0) / (channels * sampleRate * sampleSizeInBits)));
+  }
+
+  private static Encoding getEncoding(short format, Short subFormat, int sampleSizeInBits) {
+    WaveFormat waveFormat = WaveFormat.ofValue(format);
+    return switch (waveFormat) {
+      case PCM -> sampleSizeInBits <= 8 ? Encoding.PCM_UNSIGNED : Encoding.PCM_SIGNED;
+      case IEEE_FLOAT -> Encoding.PCM_FLOAT;
+      case ALAW -> Encoding.ALAW;
+      case MULAW -> Encoding.ULAW;
+      case EXTENSIBLE -> new Encoding(WaveFormat.ofValue(subFormat).name());
+      default -> new Encoding(waveFormat.name());
+    };
   }
 }

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
+import javax.sound.sampled.AudioFileFormat;
 import lombok.Getter;
 
 @Getter
@@ -85,6 +86,10 @@ public enum AudioFileType {
   public static String mimeTypeToExtension(String mimeType) {
     List<String> extensions = mimeTypeToExtensions(mimeType);
     return extensions.isEmpty() ? null : extensions.get(0);
+  }
+
+  public AudioFileFormat.Type toAudioFileFormatType() {
+    return new AudioFileFormat.Type(displayName.toUpperCase(Locale.ROOT), extensions.get(0));
   }
 
   private static boolean isNotEmpty(String s) {

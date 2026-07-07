@@ -59,8 +59,8 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
   private AiffInfo readInfos(AudioInputStream ais, boolean aifc) throws AudioFormatException, IOException {
     findChunk(ais, "COMM");
     short numChannels = ais.read16bitBE();
-    int numFrames = ais.read32bitBE();
-    short bitsPerSample = ais.read16bitBE();
+    int frameCount = ais.read32bitBE();
+    short sampleSizeInBits = ais.read16bitBE();
     double sampleRate = ais.readExtendedFloatBE();
 
     String compression;
@@ -76,9 +76,9 @@ public class AiffInfoSupplier implements AudioInfoSupplier<AiffInfo> {
 
     return AiffInfo.builder()
         .name(ais.getName())
-        .numChannels(numChannels)
-        .numFrames(numFrames)
-        .bitsPerSample(bitsPerSample)
+        .channels(numChannels)
+        .frameCount(frameCount)
+        .sampleSizeInBits(sampleSizeInBits)
         .sampleRate((float) sampleRate)
         .compression(compression)
         .bigEndian(bigEndian)

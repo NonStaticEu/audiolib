@@ -9,19 +9,24 @@
  */
 package eu.nonstatic.audio.formats.ogg;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import eu.nonstatic.audio.AudioIssue;
+import lombok.Getter;
+import lombok.NonNull;
+
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.Getter;
 
-public final class OggStreamsInfos extends OggIssues implements Iterable<OggInfo> {
+public final class OggStreamsInfos implements Iterable<OggInfo> {
 
   // serial number => infos
   private final Map<Integer, OggInfo> oggInfos = new LinkedHashMap<>(); // linked cause we'll be getting the first audio stream later on
+  final List<AudioIssue> issues = new ArrayList<>(); // location => bytes skipped
+
+  void addIssue(@NonNull AudioIssue issue) {
+    issues.add(issue);
+  }
 
   // true if the file unexpectedly reached EOF or if we didn't reach the end-of-stream page for every stream
   // Sync errors don't have any effect on this flag
@@ -71,6 +76,10 @@ public final class OggStreamsInfos extends OggIssues implements Iterable<OggInfo
 
   public Map<Integer, OggInfo> getOggInfos() {
     return Collections.unmodifiableMap(oggInfos);
+  }
+
+  public List<AudioIssue> getIssues() {
+    return Collections.unmodifiableList(issues);
   }
 
   public Map<Integer, OggInfo> getOggInfos(OggCodec.Type type) {
