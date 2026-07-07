@@ -9,12 +9,17 @@
  */
 package eu.nonstatic.audio.formats.wave;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import eu.nonstatic.audio.AudioFileType;
-import eu.nonstatic.audio.formats.AudioInfoException;
 import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
 import eu.nonstatic.audio.AudioTestBase;
 import eu.nonstatic.audio.FaultyStream;
+import eu.nonstatic.audio.formats.AudioInfoException;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -22,10 +27,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WaveInfoSupplierTest implements AudioTestBase {
 
@@ -36,9 +37,73 @@ class WaveInfoSupplierTest implements AudioTestBase {
     WaveInfo waveInfo = infoSupplier.getInfos(WAVE_URL.openStream(), WAVE_NAME);
     assertEquals(AudioFileType.WAVE, waveInfo.getType());
     assertEquals(Duration.ofMillis(8011L), waveInfo.getDuration());
+    assertNull(waveInfo.getSubFormat());
     assertTrue(waveInfo.getIssues().isEmpty());
   }
 
+
+  @Test
+  void should_read_fmt_chunk_with_cbSize_0() throws IOException, AudioInfoException {
+    ByteBuffer bb = ByteBuffer.allocate(46).order(ByteOrder.LITTLE_ENDIAN)
+      .put("RIFF".getBytes())
+      .putInt(6) // 4 + 2 chunks (fmt + data)
+      .put("WAVE".getBytes())
+
+      .put("fmt ".getBytes())
+      .putInt(18) // 16 + cbSize (2 bytes) == 0
+      .putShort(WaveFormat.PCM.getValue())
+      .putShort((short) 2)   // numChannels
+      .putInt(44100)         // sampleRate
+      .putInt(176400)        // data rate
+      .putShort((short) 4)   // data block size
+      .putShort((short) 16)  // bitsPerSample
+      .putShort((short) 0)   // cbSize == 0: no extension
+
+      .put("data".getBytes())
+      .putInt(1000); // audioSize
+
+    WaveInfo waveInfo = infoSupplier.getInfos(new ByteArrayInputStream(bb.array()), WAVE_NAME);
+    assertEquals(WaveFormat.PCM.getValue(), waveInfo.getFormat());
+    assertEquals(2, waveInfo.getNumChannels());
+    assertEquals(44100f, waveInfo.getSampleRate());
+    assertEquals(16, waveInfo.getBitsPerSample());
+    assertEquals(1000, waveInfo.getAudioSize());
+    assertNull(waveInfo.getSubFormat());
+    assertTrue(waveInfo.getIssues().isEmpty());
+  }
+
+  @Test
+  void should_read_fmt_chunk_with_cbSize_22() throws IOException, AudioInfoException {
+    ByteBuffer bb = ByteBuffer.allocate(68).order(ByteOrder.LITTLE_ENDIAN)
+      .put("RIFF".getBytes())
+      .putInt(6) // 4 + 2 chunks (fmt + data)
+      .put("WAVE".getBytes())
+
+      .put("fmt ".getBytes())
+      .putInt(40) // 16 + cbSize (2 bytes) + 22 bytes extension
+      .putShort(WaveFormat.EXTENSIBLE.getValue()) // must not be PCM to read the extension
+      .putShort((short) 2)   // numChannels
+      .putInt(48000)         // sampleRate
+      .putInt(288000)        // data rate
+      .putShort((short) 6)   // data block size
+      .putShort((short) 24)  // bitsPerSample
+      .putShort((short) 22)  // cbSize == 22: extension follows
+      .putShort((short) 24)  // wValidBitsPerSample
+      .putInt(3)             // dwChannelMask
+      .putShort(WaveFormat.PCM.getValue()) // subFormat
+      .put(new byte[14]);    // remainder of the GUID
+
+    bb.put("data".getBytes()).putInt(2000); // audioSize
+
+    WaveInfo waveInfo = infoSupplier.getInfos(new ByteArrayInputStream(bb.array()), WAVE_NAME);
+    assertEquals(WaveFormat.EXTENSIBLE.getValue(), waveInfo.getFormat());
+    assertEquals(2, waveInfo.getNumChannels());
+    assertEquals(48000f, waveInfo.getSampleRate());
+    assertEquals(24, waveInfo.getBitsPerSample());
+    assertEquals(2000, waveInfo.getAudioSize());
+    assertEquals(WaveFormat.PCM.getValue(), waveInfo.getSubFormat());
+    assertTrue(waveInfo.getIssues().isEmpty());
+  }
 
   @Test
   void should_throw_read_issue() {

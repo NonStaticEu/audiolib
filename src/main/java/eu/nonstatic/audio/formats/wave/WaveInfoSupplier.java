@@ -65,18 +65,25 @@ public class WaveInfoSupplier implements AudioInfoSupplier<WaveInfo> {
     WaveInfoBuilder builder = WaveInfo.builder().name(ais.getName());
     for (int c = 0; c < nbChunks; c++) {
       String ckName = ais.readString(4);
-      int ckSize = ais.read32bitLE();
+      int ckSize = ais.read32bitLE(); // 16: no cbSize/extension; 18: 16 + cbSize == 0; 40: 16 + cbSize == 22 + extension (22 bytes)
+      ais.chunk(ckSize);
 
       if ("fmt ".equals(ckName)) {
-        builder.waveFormat(ais.read16bitLE()); // format
+        short format = ais.read16bitLE();
+        builder.format(format);
         short numChannels = ais.read16bitLE();
         builder.numChannels(numChannels); // num channels
         builder.sampleRate(ais.read32bitLE());
         ais.skipNBytes(4); // data rate
-        short frameSize = ais.read16bitLE(); //  numChannels * bitsPerSample/8
-        builder.bitsPerSample((short)((frameSize << 3)/numChannels));
-        ais.skipNBytes(2); // bits per sample
-        ais.skipNBytes((long)ckSize - 16);
+        ais.skipNBytes(2); // data block size: numChannels * bitsPerSample/8
+        builder.bitsPerSample(ais.read16bitLE());
+        if(ais.chunkLeft() > 0 && ais.read16bitLE() > 0 && format != WaveFormat.PCM.value) {
+          ais.skipNBytes(6); // wValidBitsPerSample & dwChannelMask
+          builder.subFormat(ais.read16bitLE());
+          ais.skipNBytes(14); // Remainder of the GUID: \x00\x00\x00\x00\x10\x00\x80\x00\x00\xAA\x00\x38\x9B\x71
+        } else {
+          ais.skipChunk();
+        }
       } else if ("data".equals(ckName)) {
         builder.audioSize(ckSize);
         return builder.build();
