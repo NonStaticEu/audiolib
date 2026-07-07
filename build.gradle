@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "eu.nonstatic"
-version = "0.4.1"
+version = "0.4.2"
 
 repositories {
     maven {
@@ -19,6 +19,9 @@ repositories {
     }
     maven {
         url = uri("https://raw.githubusercontent.com/slok/algs4-mvn-repo/master/")
+    }
+    maven {
+        url = uri("https://www.beatunes.com/repo/maven2/") // tagtraum artefacts
     }
     mavenLocal()
     mavenCentral()
@@ -35,6 +38,10 @@ dependencies {
 
     runtimeOnly("com.googlecode.soundlibs:mp3spi:1.9.5.4")
     runtimeOnly("com.googlecode.soundlibs:vorbisspi:1.0.3.3")
+    runtimeOnly("org.jflac:jflac-codec:1.5.2")
+    runtimeOnly("com.tagtraum:mfsampledsp:0.9.11")
+    //runtimeOnly("com.tagtraum:ffsampledsp-complete:0.9.56")
+    //runtimeOnly("com.tagtraum:casampledsp-complete:0.9.32")
 
     testImplementation(platform('org.junit:junit-bom:6.1.0'))
     testImplementation('org.junit.jupiter:junit-jupiter')
