@@ -31,8 +31,11 @@ import lombok.Getter;
 public class AudioInputStream extends BufferedInputStream {
   @Getter
   protected final String name;
-  private long location;
-  private long markedAt;
+  private long location; // current location
+  private long markedAt = -1; // location when mark() was called
+
+  private long chunkedAt = -1;  // location of block start
+  private long chunkSize;
 
 
   public AudioInputStream(File file) throws IOException {
@@ -161,10 +164,58 @@ public class AudioInputStream extends BufferedInputStream {
     this.markedAt = location();
   }
 
+  public long markedAt() {
+    return markedAt;
+  }
+
   @Override
   public synchronized void reset() throws IOException {
     super.reset();
     this.location = markedAt;
     this.markedAt = -1;
+
+    if(location < chunkedAt) {
+      dechunk();
+    }
+  }
+
+  public synchronized void chunk(long chunkSize) {
+    if(chunkSize < 0) {
+      dechunk();
+    } else {
+      this.chunkedAt = location();
+      this.chunkSize = chunkSize;
+    }
+  }
+
+  public long chunkedAt() {
+    return chunkedAt;
+  }
+
+  public long chunkSize() {
+    return chunkSize;
+  }
+
+  public synchronized void dechunk() {
+    chunkedAt = -1;
+    chunkSize = 0;
+  }
+
+  public synchronized long chunkLeft() {
+    long left;
+    if(chunkedAt >= 0) {
+      left = chunkSize - (location - chunkedAt);
+      if(left < 0) {
+        dechunk();
+      }
+    } else {
+      left = 0;
+    }
+    return left;
+  }
+
+  public synchronized void skipChunk() throws IOException {
+    skipNBytes(chunkLeft());
+    dechunk();
   }
 }

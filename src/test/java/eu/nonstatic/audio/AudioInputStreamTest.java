@@ -90,10 +90,98 @@ class AudioInputStreamTest {
   }
 
   @Test
-  void should_skipNbytes() throws IOException {
+  void should_report_chunk_left() throws IOException {
     try(AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(INTEGRAL_DATA), "data")) {
-      ais.skipNBytes(4);
-      assertEquals(0xDECAFACE, ais.read32bitBE());
+      ais.read16bitBE(); // move to location 2 before chunking
+
+      ais.chunk(4);
+      assertEquals(2, ais.chunkedAt());
+      assertEquals(4, ais.chunkLeft());
+      assertEquals(4, ais.chunkSize());
+
+      ais.read16bitBE(); // 2 bytes
+      assertEquals(2, ais.chunkLeft());
+
+      ais.read16bitBE(); // 2 more bytes
+      assertEquals(0, ais.chunkLeft());
+      assertEquals(2, ais.chunkedAt());
+      assertEquals(4, ais.chunkSize());
+
+      ais.read();
+      assertEquals(-1, ais.chunkLeft());
+      assertEquals(-1, ais.chunkedAt());
+      assertEquals(0, ais.chunkSize());
+    }
+  }
+
+  @Test
+  void should_dechunk() throws IOException {
+    try(AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(INTEGRAL_DATA), "data")) {
+      ais.chunk(4);
+      assertEquals(4, ais.chunkLeft());
+      assertEquals(4, ais.chunkSize());
+
+      ais.dechunk();
+      assertEquals(0, ais.chunkLeft());
+      assertEquals(0, ais.chunkSize());
+    }
+  }
+
+  @Test
+  void should_dechunk_on_negative_chunk() throws IOException {
+    try(AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(INTEGRAL_DATA), "data")) {
+      ais.chunk(4);
+      assertEquals(4, ais.chunkLeft());
+
+      ais.chunk(-1); // negative size dechunks
+      assertEquals(0, ais.chunkLeft());
+      assertEquals(0, ais.chunkSize());
+    }
+  }
+
+  @Test
+  void should_skip_chunk() throws IOException {
+    try(AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(INTEGRAL_DATA), "data")) {
+      ais.read();
+      ais.chunk(4);
+      ais.skipChunk();
+      assertEquals(5, ais.location());
+      assertEquals(-1, ais.chunkedAt());
+      assertEquals(0, ais.chunkLeft());
+      assertEquals(0, ais.chunkSize());
+    }
+  }
+
+  @Test
+  void should_skip_chunk_after_partial_read() throws IOException {
+    try(AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(INTEGRAL_DATA), "data")) {
+      ais.chunk(4);
+      ais.read16bitBE(); // consume 2 of the 4 chunk bytes
+      ais.skipChunk();   // skip the remaining 2
+      assertEquals(4, ais.location());
+      assertEquals(-1, ais.chunkedAt());
+      assertEquals(0, ais.chunkLeft());
+      assertEquals(0, ais.chunkSize());
+
+    }
+  }
+
+  @Test
+  void should_dechunk_on_reset_before_chunk_start() throws IOException {
+    try(AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(INTEGRAL_DATA), "data")) {
+      ais.mark(8);
+      ais.read16bitBE(); // location 2
+      ais.chunk(5); // chunk starts at 2
+      assertEquals(2, ais.chunkedAt());
+      assertEquals(5, ais.chunkSize());
+      ais.read16bitBE();
+      assertEquals(3, ais.chunkLeft());
+      assertEquals(5, ais.chunkSize());
+
+      ais.reset(); // location goes back to 0, before the chunk start
+      assertEquals(-1, ais.chunkedAt());
+      assertEquals(0, ais.chunkLeft());
+      assertEquals(0, ais.chunkSize());
     }
   }
 
@@ -102,21 +190,27 @@ class AudioInputStreamTest {
     try(AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(INTEGRAL_DATA), "data")) {
       // simple read
       ais.read();
+      assertEquals(-1, ais.markedAt());
       assertEquals(1, ais.location());
 
       // array read
       ais.mark(6);
+      assertEquals(1, ais.markedAt());
       assertEquals(1, ais.location());
       ais.read(new byte[4]);
+      assertEquals(1, ais.markedAt());
       assertEquals(5, ais.location());
       ais.reset();
+      assertEquals(-1, ais.markedAt());
       assertEquals(1, ais.location());
 
       // array N read
       ais.mark(2);
+      assertEquals(1, ais.markedAt());
       ais.readNBytes(2);
       assertEquals(3, ais.location());
       ais.reset();
+      assertEquals(-1, ais.markedAt());
       assertEquals(1, ais.location());
 
       // array N read offset
@@ -124,6 +218,7 @@ class AudioInputStreamTest {
       ais.readNBytes(new byte[10], 3, 7);
       assertEquals(8, ais.location()); // end of stream
       ais.reset();
+      assertEquals(-1, ais.markedAt());
       assertEquals(1, ais.location());
 
       // skip
@@ -133,8 +228,10 @@ class AudioInputStreamTest {
       // skip N
       ais.mark(5);
       ais.skipNBytes(2);
+      assertEquals(4, ais.markedAt());
       assertEquals(6, ais.location());
       ais.reset();
+      assertEquals(-1, ais.markedAt());
       assertEquals(4, ais.location());
     }
   }
