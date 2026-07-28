@@ -14,6 +14,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
 import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 public class SpectrumVisualizer extends JFrame {
 
@@ -41,7 +42,7 @@ public class SpectrumVisualizer extends JFrame {
       }
     });
     
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     setSize(width, height);
     setVisible(true);
   }

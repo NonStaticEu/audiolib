@@ -82,6 +82,6 @@ public class MicrophoneInputStream extends InputStream {
       readBytes = targetDataLine.read(buffer, 0, buffer.length);
       cursor = 0;
     }
-    return buffer[cursor++];
+    return buffer[cursor++] & 0xFF;
   }
 }

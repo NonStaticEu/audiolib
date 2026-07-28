@@ -51,6 +51,7 @@ public abstract class OggInfo extends AudioFormatEx implements Cloneable {
 
   public abstract OggCodec getCodec();
 
+  @Override
   public List<AudioIssue> getIssues() {
     return Collections.unmodifiableList(issues);
   }

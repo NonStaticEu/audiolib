@@ -325,8 +325,7 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
         details.frameLength = ((12 * bitRate * 1000) / sampleRate + padding) * 4;
         details.sampleCount = LAYER_I_SAMPLES_PER_FRAME;
         break;
-      case MPEG_LAYER_II:
-      case MPEG_LAYER_III:
+      case MPEG_LAYER_II, MPEG_LAYER_III:
         details.frameLength = (144 * bitRate * 1000) / sampleRate + padding;
         details.sampleCount = LAYER_II_OR_III_SAMPLES_PER_FRAME;
         break;

@@ -17,7 +17,6 @@ import eu.nonstatic.audio.formats.AudioInfo;
 import java.io.IOException;
 import java.util.Arrays;
 import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
  * @see "https://labrosa.ee.columbia.edu/~dpwe/resources/matlab/fingerprint/"
@@ -91,7 +90,7 @@ public record AudioAnalyzer(int windowFrames, int overlapFrames) {
       fis.markFrames(windowFrames);
       fis.readFrames(buffer);
       fis.reset();
-      fis.skipFrames(windowFrames - overlapFrames);
+      fis.skipFrames((long)windowFrames - overlapFrames);
     } else {
       fis.readFrames(buffer);
     }
@@ -219,7 +218,7 @@ public record AudioAnalyzer(int windowFrames, int overlapFrames) {
    * @param ai
    * @return the complete stream's FFT
    */
-  public Complex[][] fftSliding(FrameSupport fis, AudioInfo ai) throws IOException, UnsupportedAudioFileException {
+  public Complex[][] fftSliding(FrameSupport fis, AudioInfo ai) throws IOException {
     return fftSliding(fis, ai.getFrameCount());
   }
 }

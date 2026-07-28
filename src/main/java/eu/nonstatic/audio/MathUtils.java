@@ -88,7 +88,7 @@ public final class MathUtils {
       }
       n += array.length;
     }
-    return s/n;
+    return n!= 0 ? s/n : Double.NaN;
   }
   
   public static void minus(double[][] matrix, double v) {

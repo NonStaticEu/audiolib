@@ -11,18 +11,16 @@ package eu.nonstatic.audio.formats.aiff;
 
 import eu.nonstatic.audio.AudioFileType;
 import eu.nonstatic.audio.formats.AudioFormatEx;
-import lombok.Builder;
-import lombok.Getter;
-
 import java.time.Duration;
 import java.util.Locale;
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 public class AiffInfo extends AudioFormatEx {
   private final String name;
   private final int frameCount;
   private final String compression;
-  private final boolean bigEndian;
 
   @Builder
   public AiffInfo(String name, int channels, float sampleRate, int sampleSizeInBits, int frameCount, String compression, boolean bigEndian) {

@@ -45,11 +45,9 @@ public class FrameInputStream extends BufferedInputStream implements FrameSuppor
   public int readFrames(double[] buffer, int start, int len) throws IOException {
     int count = 0;
 
-    byte[] frameBuffer = new byte[frameSize];
-    
     try {
       for(int i = 0; i < len; i++) {
-        read(frameBuffer);
+        byte[] frameBuffer = readNBytes(frameSize);
         // Rebuilding frame as double
         long l = ByteUtils.bytesToLongSignedLSB(frameBuffer); // assuming we're working with SIGNED PCM WAV's (LSB byte order)
         buffer[start+i] = l;

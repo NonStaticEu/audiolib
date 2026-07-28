@@ -2,6 +2,7 @@ package eu.nonstatic.audio.detect;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
@@ -101,7 +102,7 @@ class FiltersTest {
       assertArrayEquals(copy, input, "input must not be mutated");
       for (double[] out : outputs) {
         assertEquals(input.length, out.length);
-        assertTrue(out != input);
+        assertNotSame(out, input);
       }
     }
 
@@ -203,7 +204,7 @@ class FiltersTest {
       assertArrayEquals(copy, input, "input must not be mutated");
       for (double[] out : outputs) {
         assertEquals(input.length, out.length);
-        assertTrue(out != input);
+        assertNotSame(out, input);
       }
     }
 

@@ -62,6 +62,7 @@ public class OggVorbisInfo extends OggInfo {
     return Duration.ofNanos(Math.round(seconds * 1_000_000_000.0));
   }
 
+  @Override
   protected void addIssue(@NonNull AudioIssue issue) {
     super.addIssue(issue);
   }
