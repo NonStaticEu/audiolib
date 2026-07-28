@@ -147,7 +147,9 @@ public class AudioInputStream extends BufferedInputStream {
   @Override
   public synchronized int read(byte[] b, int off, int len) throws IOException {
     int read = super.read(b, off, len);
-    this.location += read;
+    if(read > 0) { // EOF will give -1
+      this.location += read;
+    }
     return read;
   }
 

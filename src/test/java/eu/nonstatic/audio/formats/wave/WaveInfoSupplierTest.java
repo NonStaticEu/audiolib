@@ -168,7 +168,7 @@ class WaveInfoSupplierTest implements AudioTestBase {
     assertEquals(1, iae.getIssues().size());
     AudioIssue issue = iae.getIssues().get(0);
     assertEquals(Type.EOF, issue.getType());
-    assertEquals(15, issue.getLocation());
+    assertEquals(16, issue.getLocation());
     assertEquals(EOFException.class, issue.getCause().getClass());
   }
 }

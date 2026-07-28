@@ -157,10 +157,10 @@ class Mp3InfoSupplierTest implements AudioTestBase {
       assertEquals(1, issues.size());
       AudioIssue issue = issues.get(0);
       assertEquals(Type.EOF, issue.getType());
-      assertEquals(321, issue.getLocation());
+      assertEquals(322, issue.getLocation());
       assertNull(issue.getMetas());
       assertEquals(EOFException.class, issue.getCause().getClass());
-      assertEquals("AudioIssue EOF at 321", issue.toString());
+      assertEquals("AudioIssue EOF at 322", issue.toString());
       assertEquals(44100, incompleteInfos.getSampleRate());
       assertEquals(44100.f, incompleteInfos.getSampleRate());
     }

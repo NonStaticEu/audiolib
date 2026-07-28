@@ -111,7 +111,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
     assertEquals(1, iae.getIssues().size());
     AudioIssue issue = iae.getIssues().get(0);
     assertEquals(Type.EOF, issue.getType());
-    assertEquals(21, issue.getLocation());
+    assertEquals(22, issue.getLocation());
     assertEquals(EOFException.class, issue.getCause().getClass());
   }
 
@@ -126,7 +126,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
     assertEquals(1, aie.getIssues().size());
-    assertEquals("Chunk COMM not found at 11: /audio/Arpeggio.aiff", aie.getIssues().get(0).getCause().getMessage());
+    assertEquals("Chunk COMM not found at 12: /audio/Arpeggio.aiff", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test
@@ -143,7 +143,7 @@ class AiffInfoSupplierTest implements AudioTestBase {
     ByteArrayInputStream bais = new ByteArrayInputStream(bb.array());
     AudioInfoException aie = assertThrows(AudioInfoException.class, () -> infoSupplier.getInfos(bais, AIFF_NAME));
     assertEquals(1, aie.getIssues().size());
-    assertEquals("Chunk COMM not found at 27: /audio/Arpeggio.aiff", aie.getIssues().get(0).getCause().getMessage());
+    assertEquals("Chunk COMM not found at 28: /audio/Arpeggio.aiff", aie.getIssues().get(0).getCause().getMessage());
   }
 
   @Test
