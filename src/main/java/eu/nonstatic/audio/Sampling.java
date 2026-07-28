@@ -29,26 +29,19 @@ public record Sampling(double[] samples, int start, int length, AudioFormat form
     this(samples, 0, samples.length, format);
   }
 
-  public static Sampling of(AudioInputStream ais) throws IOException {
-    byte[] bytes = ais.readAllBytes();
-    ByteBuffer buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
-
-    int numSamples = bytes.length / 2;
-    double[] samples = new double[numSamples];
-
-    for (int i = 0; i < numSamples; i++) {
-      samples[i] = buffer.getShort() / 32768.0;
-    }
-
-    AudioFormat format = ais.getFormat();
-    return new Sampling(samples, format);
-  }
-
   public static Sampling mono(AudioInputStream ais) throws IOException {
-    if(ais.getFormat().getChannels() == 1) {
-      return of(ais);
-    } else try (AudioInputStream mis = AudioUtils.getMonoInputStream(ais)) {
-      return of(mis);
+    try (AudioInputStream mis = AudioUtils.getMonoInputStream(ais)) {
+      byte[] bytes = mis.readAllBytes();
+      ByteBuffer buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
+
+      int numSamples = bytes.length / 2; // sampleSizeInBits / 8
+      double[] samples = new double[numSamples];
+
+      for (int i = 0; i < numSamples; i++) {
+        samples[i] = buffer.getShort() / 32768.0; // 2 << (sampleSizeInBits-1) to scale to [-1, +1]
+      }
+
+      return new Sampling(samples, mis.getFormat());
     }
   }
 

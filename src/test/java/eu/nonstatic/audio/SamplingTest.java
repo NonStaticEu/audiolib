@@ -42,7 +42,7 @@ class SamplingTest {
         (byte) 0x00, (byte) 0x80  // -32768
     };
     try (AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(data), FORMAT_44100_16_MONO, data.length / 2)) {
-      Sampling sampling = Sampling.of(ais);
+      Sampling sampling = Sampling.mono(ais);
       assertArrayEquals(new double[]{16384 / 32768.0, -16384 / 32768.0, 0.0, 32767 / 32768.0, -32768 / 32768.0}, sampling.samples());
       assertEquals(0, sampling.start());
       assertEquals(5, sampling.length());
