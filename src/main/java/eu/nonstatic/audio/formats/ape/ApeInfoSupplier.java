@@ -65,7 +65,7 @@ public class ApeInfoSupplier implements AudioInfoSupplier<ApeInfo> {
         /* Skip any unknown bytes at the end of the descriptor.
            This is for future compatibility */
         if (descriptorLength > 52) {
-          ais.skipNBytes(descriptorLength - 52);
+          ais.skipNBytes(descriptorLength - 52L);
         }
 
         compressionType = ais.read16bitLE();
