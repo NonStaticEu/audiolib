@@ -17,6 +17,12 @@ import java.time.Duration;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 
+/**
+ * @param samples
+ * @param start number of samples
+ * @param length number of samples
+ * @param format
+ */
 public record Sampling(double[] samples, int start, int length, AudioFormat format) {
 
   public Sampling(double[] samples, AudioFormat format) {
@@ -24,20 +30,25 @@ public record Sampling(double[] samples, int start, int length, AudioFormat form
   }
 
   public static Sampling of(AudioInputStream ais) throws IOException {
-    try (AudioInputStream mis = AudioUtils.getMonoInputStream(ais)) {
+    byte[] bytes = ais.readAllBytes();
+    ByteBuffer buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
 
-      byte[] bytes = mis.readAllBytes();
-      ByteBuffer buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
+    int numSamples = bytes.length / 2;
+    double[] samples = new double[numSamples];
 
-      int numSamples = bytes.length / 2;
-      double[] samples = new double[numSamples];
+    for (int i = 0; i < numSamples; i++) {
+      samples[i] = buffer.getShort() / 32768.0;
+    }
 
-      for (int i = 0; i < numSamples; i++) {
-        samples[i] = buffer.getShort() / 32768.0;
-      }
+    AudioFormat format = ais.getFormat();
+    return new Sampling(samples, format);
+  }
 
-      AudioFormat format = mis.getFormat();
-      return new Sampling(samples, format);
+  public static Sampling mono(AudioInputStream ais) throws IOException {
+    if(ais.getFormat().getChannels() == 1) {
+      return of(ais);
+    } else try (AudioInputStream mis = AudioUtils.getMonoInputStream(ais)) {
+      return of(mis);
     }
   }
 
@@ -78,7 +89,7 @@ public record Sampling(double[] samples, int start, int length, AudioFormat form
   }
 
   private int durationToSamples(Duration duration) {
-    return (int)((format.getSampleRate() * format.getSampleSizeInBits() * duration.toMillis()) / (1000 * 8));
+    return (int)((format.getSampleRate() * duration.toMillis()) / 1000);
   }
 
   private Duration samplesToDuration(int samples) {

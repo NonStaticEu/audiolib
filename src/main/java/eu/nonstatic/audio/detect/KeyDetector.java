@@ -53,7 +53,7 @@ public record KeyDetector(int windowFrames, double minFrequency, double maxFrequ
   }
 
   public Key detect(AudioInputStream ais) throws IOException {
-    Sampling sampling = Sampling.of(ais);
+    Sampling sampling = Sampling.mono(ais);
     return detect(sampling);
   }
 

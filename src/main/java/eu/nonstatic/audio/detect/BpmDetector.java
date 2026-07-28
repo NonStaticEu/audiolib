@@ -42,7 +42,7 @@ public record BpmDetector(double minBpm, double maxBpm) {
   }
 
   public Bpm detect(AudioInputStream ais) throws IOException {
-    Sampling sampling = Sampling.of(ais);
+    Sampling sampling = Sampling.mono(ais);
     return detect(sampling);
   }
 
