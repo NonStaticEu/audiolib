@@ -23,10 +23,29 @@ import javax.sound.sampled.AudioInputStream;
  * @param length number of samples
  * @param format
  */
-public record Sampling(double[] samples, int start, int length, AudioFormat format) {
+public record Sampling(double[] samples, int start, int length, AudioFormat format, boolean lenient) {
+
+  public Sampling {
+    if(lenient) {
+      start = Math.min(samples.length, Math.max(0, start));
+      length = Math.min(Math.max(0, length), samples.length - start);
+    }
+
+    if (start < 0 || length < 0 || start+length > samples.length || format.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) {
+      throw new IllegalArgumentException("samples: %d, start: %d, length: %d, encoding: %s".formatted(samples.length, start, length, format.getEncoding()));
+    }
+  }
+
+  public Sampling(double[] samples, int start, int length, AudioFormat format) {
+    this(samples, start, length, format, false);
+  }
+
+  public Sampling(double[] samples, AudioFormat format, boolean lenient) {
+    this(samples, 0, samples.length, format, lenient);
+  }
 
   public Sampling(double[] samples, AudioFormat format) {
-    this(samples, 0, samples.length, format);
+    this(samples, format, false);
   }
 
   public static Sampling mono(AudioInputStream ais) throws IOException {
@@ -45,12 +64,20 @@ public record Sampling(double[] samples, int start, int length, AudioFormat form
     }
   }
 
+  public Sampling safe() {
+    return new Sampling(samples, start, length, format, true);
+  }
+
+  public Sampling unsafe() {
+    return new Sampling(samples, start, length, format, false);
+  }
+
   public Sampling slice(TimeCode start, Duration duration) {
-    return new Sampling(samples, timeCodeToSamples(start), durationToSamples(duration), format);
+    return new Sampling(samples, timeCodeToSamples(start), durationToSamples(duration), format, lenient);
   }
 
   public Sampling slice(TimeCode start, TimeCode end) {
-    return new Sampling(samples, timeCodeToSamples(start), framesToSamples(end.toFrameCount() - start.toFrameCount()), format);
+    return new Sampling(samples, timeCodeToSamples(start), framesToSamples(end.toFrameCount() - start.toFrameCount()), format, lenient);
   }
 
   public TimeCode timeCode() {

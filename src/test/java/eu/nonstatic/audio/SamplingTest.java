@@ -11,6 +11,7 @@ package eu.nonstatic.audio;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import eu.nonstatic.timecode.TimeCode;
@@ -31,6 +32,16 @@ class SamplingTest {
 
   static final AudioFormat FORMAT_44100_16_STEREO =
       new AudioFormat(Encoding.PCM_SIGNED, 44100f, 16, 2, 4, 44100f, false);
+
+  @Test
+  void should_validate() {
+    assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, -1, 1, FORMAT_44100_16_MONO)); // neg start
+    assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, 1, 3, FORMAT_44100_16_MONO)); // too long
+    assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, 0, -1, FORMAT_44100_16_MONO)); // neg length
+    assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, 4, 0, FORMAT_44100_16_MONO)); //start after samples end
+    assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, 2, 2, FORMAT_44100_16_MONO)); // total length after samples end
+    assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, 1, 2, new AudioFormat(Encoding.ALAW, 44100f, 16, 2, 4, 44100f, false))); // not signed samples
+  }
 
   @Test
   void should_create_sampling_from_16bitLE_bytes() throws IOException {
@@ -108,9 +119,25 @@ class SamplingTest {
   }
 
   @Test
+  void should_slice_safe() {
+    double[] samples = new double[100_000];
+    Sampling sampling = new Sampling(samples, FORMAT_44100_16_MONO);
+
+    assertThrows(IllegalArgumentException.class, () -> sampling.slice(new TimeCode(0, 0, 10), new TimeCode(99, 0, 0)));
+    Sampling slice1 = sampling.safe().slice(new TimeCode(0, 0, 10), new TimeCode(99, 0, 0));
+    assertEquals(11760, slice1.start());
+    assertEquals(100000-11760, slice1.length());
+
+    Sampling slice2 = sampling.safe().slice(new TimeCode(0, 0, 20), Duration.ofMinutes(99));
+    assertEquals(23520, slice2.start());
+    assertEquals(100000-23520, slice2.length());
+    assertThrows(IllegalArgumentException.class, () -> sampling.unsafe().slice(new TimeCode(0, 0, 20), Duration.ofMinutes(99)));
+  }
+
+  @Test
   void should_compute_timecode_from_start() {
     double[] samples = new double[100_000];
-    Sampling sampling = new Sampling(samples, 11760, samples.length, FORMAT_44100_16_MONO);
+    Sampling sampling = new Sampling(samples, 11760, 10000, FORMAT_44100_16_MONO);
 
     assertEquals(new TimeCode(Duration.ofMillis(133)), sampling.timeCode());
   }
@@ -132,4 +159,5 @@ class SamplingTest {
     assertEquals(2, sampling.channels());
     assertTrue(sampling.bigEndian());
   }
+
 }
