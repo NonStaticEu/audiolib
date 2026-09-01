@@ -77,7 +77,7 @@ public record Sampling(double[] samples, int start, int length, AudioFormat form
   }
 
   public Sampling slice(TimeCode start, TimeCode end) {
-    return new Sampling(samples, timeCodeToSamples(start), framesToSamples(end.toFrameCount() - start.toFrameCount()), format, lenient);
+    return new Sampling(samples, timeCodeToSamples(start), framesToSamples(end.toFrames() - start.toFrames()), format, lenient);
   }
 
   public TimeCode timeCode() {
@@ -101,7 +101,7 @@ public record Sampling(double[] samples, int start, int length, AudioFormat form
   }
 
   private int timeCodeToSamples(TimeCode timeCode) {
-    return framesToSamples(timeCode.toFrameCount());
+    return framesToSamples(timeCode.toFrames());
   }
 
   private int framesToSamples(int frames) {
