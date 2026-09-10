@@ -103,7 +103,7 @@ public record KeyDetector(int windowFrames, double minFrequency, double maxFrequ
    */
   public Key bestMatch(double[] chroma) {
     if (isSilent(chroma)) {
-      throw new IllegalArgumentException("No tonal content to determine key");
+      throw new NoTonalContentException();
     }
 
     int bestTonic = 0;

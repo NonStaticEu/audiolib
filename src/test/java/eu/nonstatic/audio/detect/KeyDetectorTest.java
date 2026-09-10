@@ -68,7 +68,7 @@ class KeyDetectorTest implements AudioTestBase {
   @Test
   void throwsOnSilence() {
     double[] silence = new double[(int) SAMPLE_RATE]; // 1 second of zeros
-    assertThrows(IllegalArgumentException.class, () -> DETECTOR.detect(silence, SAMPLE_RATE));
+    assertThrows(NoTonalContentException.class, () -> DETECTOR.detect(silence, SAMPLE_RATE));
   }
 
   @Test

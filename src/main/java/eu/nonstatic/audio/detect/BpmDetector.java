@@ -118,7 +118,7 @@ public record BpmDetector(double minBpm, double maxBpm) {
 
   private static void requireEnoughFrames(int n, int minLag, int maxLag) {
     if (n < 4 || maxLag < minLag + 2 || maxLag >= n) {
-      throw new IllegalArgumentException("Audio too short to determine BPM");
+      throw new NotEnoughAudioException();
     }
   }
 

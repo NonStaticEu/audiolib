@@ -48,7 +48,7 @@ class BpmDetectorTest {
       samples[i] = 0.9;
     }
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(NotEnoughAudioException.class,
         () -> BPM_DETECTOR.detect(samples, 44100f));
   }
 }
