@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "eu.nonstatic"
-version = "0.6.1"
+version = "0.6.2"
 
 repositories {
     maven {
@@ -32,7 +32,7 @@ def lombokVersion = '1.18.46'
 dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     implementation("edu.princeton.cs.introcs:algs4-package:1.0")
-    api("eu.nonstatic:timecode:1.1.0")
+    api("eu.nonstatic:timecode:1.2.0")
     implementation('org.slf4j:slf4j-api:2.0.18')
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 

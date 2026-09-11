@@ -139,7 +139,7 @@ class SamplingTest {
     double[] samples = new double[100_000];
     Sampling sampling = new Sampling(samples, 11760, 10000, FORMAT_44100_16_MONO);
 
-    assertEquals(new TimeCode(Duration.ofMillis(133)), sampling.timeCode());
+    assertEquals(TimeCode.ofDuration(Duration.ofMillis(133)), sampling.timeCode());
   }
 
   @Test

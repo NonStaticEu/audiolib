@@ -81,7 +81,7 @@ public record Sampling(double[] samples, int start, int length, AudioFormat form
   }
 
   public TimeCode timeCode() {
-    return new TimeCode(samplesToDuration(start));
+    return TimeCode.ofDuration(samplesToDuration(start));
   }
 
   public Duration duration() {
