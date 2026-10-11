@@ -9,9 +9,12 @@
  */
 package eu.nonstatic.audio;
 
-import java.io.BufferedInputStream;
+import eu.nonstatic.audio.formats.mpeg.MpegAudioInfoSupplier;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioFormat.Encoding;
 import javax.sound.sampled.AudioInputStream;
@@ -67,7 +70,7 @@ public final class AudioUtils {
   /**
    * Useful when the input is not a PCM/WAV (eg MP3/OGG)
    */
-  public static AudioInputStream getStereoInputStream(AudioInputStream ais) {
+  public static AudioInputStream getStereoInputStream(javax.sound.sampled.AudioInputStream ais) {
     AudioFormat targetFormat = toStandardStereoPcmFormat(ais.getFormat());
     return AudioSystem.getAudioInputStream(targetFormat, ais); // will return ais itself if the the in/out formats are the same
   }
@@ -83,22 +86,33 @@ public final class AudioUtils {
                            sourceFormat.properties());
   }
 
-  public static AudioInputStream getMonoInputStream(InputStream is) throws UnsupportedAudioFileException, IOException {
-    return getMonoInputStream(AudioSystem.getAudioInputStream(ensureBuffered(is)));
+  public static AudioInputStream getAudioInputStream(URL url) throws UnsupportedAudioFileException, IOException {
+    return getAudioInputStream(url.openStream());
   }
 
-  private static InputStream ensureBuffered(InputStream is) {
-    if(is.markSupported()) {
-      return is;
-    } else {
-      return new BufferedInputStream(is);
-    }
+  public static AudioInputStream getAudioInputStream(Path path) throws UnsupportedAudioFileException, IOException {
+    return getAudioInputStream(Files.newInputStream(path));
+  }
+
+  public static AudioInputStream getAudioInputStream(InputStream is) throws UnsupportedAudioFileException, IOException {
+    var ais = new eu.nonstatic.audio.AudioInputStream(is, null);
+    /*
+     * Skips any leading ID3v2 tag because mp3spi's MpegAudioFileReader marks the stream with a hardcoded 4096001 bytes limit,
+     * then JLayer's Bitstream.loadID3v2() reads the whole tag into memory. A tag bigger than that limit (easily reached with an embedded cover) invalidates the mark
+     * and makes the subsequent reset(). Getting rid of the tag first works around that issue.
+     */
+    MpegAudioInfoSupplier.skipID3v2(ais);
+    return AudioSystem.getAudioInputStream(ais);
+  }
+
+  public static AudioInputStream getMonoInputStream(InputStream is) throws UnsupportedAudioFileException, IOException {
+    return getMonoInputStream(getAudioInputStream(is));
   }
 
   /**
    * Useful when only one channel has to be analyzed
    */
-  public static AudioInputStream getMonoInputStream(AudioInputStream ais) {
+  public static AudioInputStream getMonoInputStream(javax.sound.sampled.AudioInputStream ais) {
     // Need to make a double conversion if we're not coming from a straight pcm (eg: ogg/mp3)
     if(ais.getFormat().getChannels() > 1) {
       ais = getStereoInputStream(ais); // Going to uncompressed stereo; will return itself if no conversion is needed

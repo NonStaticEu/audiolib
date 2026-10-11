@@ -13,11 +13,13 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class AudioInputStreamTest {
   static final byte[] INTEGRAL_DATA = {(byte) 0xCA, (byte) 0xFE, (byte) 0xBA, (byte) 0xBE, (byte) 0xDE, (byte) 0xCA, (byte) 0xFA, (byte) 0xCE};
@@ -25,15 +27,17 @@ class AudioInputStreamTest {
   static final byte[] FLOAT_DATA_48KHZ = new byte[]{64, 14, -69, -128, 0, 0, 0, 0, 0, 0};
 
   @Test
-  void should_open_on_file() throws IOException {
-    File tempFile = File.createTempFile("foo", null);
-    try(OutputStream os = new FileOutputStream(tempFile)) {
+  void should_open_on_file(@TempDir Path tempDir) throws IOException {
+    Path tempFile = Files.createTempFile(tempDir, "foo", null);
+    try(OutputStream os = new FileOutputStream(tempFile.toFile())) {
       os.write(INTEGRAL_DATA);
       os.flush();
     }
-    AudioInputStream ais = new AudioInputStream(tempFile);
-    assertArrayEquals(INTEGRAL_DATA, ais.readAllBytes());
-    tempFile.delete();
+    try(AudioInputStream ais = new AudioInputStream(tempFile)) {
+      assertArrayEquals(INTEGRAL_DATA, ais.readAllBytes());
+    } finally {
+      Files.delete(tempFile);
+      }
   }
 
   @Test
@@ -107,7 +111,7 @@ class AudioInputStreamTest {
       assertEquals(2, ais.chunkedAt());
       assertEquals(4, ais.chunkSize());
 
-      ais.read();
+      ais.skip(1);
       assertEquals(-1, ais.chunkLeft());
       assertEquals(-1, ais.chunkedAt());
       assertEquals(0, ais.chunkSize());
@@ -142,7 +146,7 @@ class AudioInputStreamTest {
   @Test
   void should_skip_chunk() throws IOException {
     try(AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(INTEGRAL_DATA), "data")) {
-      ais.read();
+      ais.skip(1);
       ais.chunk(4);
       ais.skipChunk();
       assertEquals(5, ais.location());
@@ -189,7 +193,7 @@ class AudioInputStreamTest {
   void should_provide_location() throws IOException {
     try(AudioInputStream ais = new AudioInputStream(new ByteArrayInputStream(INTEGRAL_DATA), "data")) {
       // simple read
-      ais.read();
+      ais.skip(1);
       assertEquals(-1, ais.markedAt());
       assertEquals(1, ais.location());
 
@@ -197,7 +201,7 @@ class AudioInputStreamTest {
       ais.mark(6);
       assertEquals(1, ais.markedAt());
       assertEquals(1, ais.location());
-      ais.read(new byte[4]);
+      ais.skip(4);
       assertEquals(1, ais.markedAt());
       assertEquals(5, ais.location());
       ais.reset();

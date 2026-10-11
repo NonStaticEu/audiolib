@@ -33,6 +33,10 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInfo> {
 
+  public static final String ID3_MAGIC = "ID3";
+  public static final int ID3_HEADER_LENGTH = 10;
+  public static final int ID3_FOOTER_LENGTH = 10;
+
   private static final int MPEG_VERSION_2_5 = 0;
   private static final int MPEG_VERSION_2 = 2;
   private static final int MPEG_VERSION_1 = 3;
@@ -182,10 +186,8 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   /**
    * <a href="https://mutagen-specs.readthedocs.io/en/latest/id3/id3v2.4.0-structure.html">...</a>
    * <a href="http://www.datavoyage.com/mpgscript/mpeghdr.htm">...</a>
-   * <a href="https://phoxis.org/2010/05/08/synch-safe/">...</a>
    * Lyrics custom tag: found some intel in the code: <a href="https://sourceforge.net/projects/mp3diags/">...</a>
    * Example: LYRICSBEGININD0000200ETT00040Jam & Spoon - Tripomatic Fairytales 2002CRC0000835FAE1F2000085LYRICS200
-   * <a href="https://en.wikipedia.org/wiki/APE_tag">...</a>
    * We're assuming there is no weird sync/alignment issue
    */
   public MpegInfo getInfos(InputStream is, String name) throws AudioInfoException, IOException {
@@ -217,21 +219,24 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
   }
 
 
-  void skipID3v2(AudioInputStream ais) throws IOException {
+  public static long skipID3v2(AudioInputStream ais) throws IOException {
     ais.mark(3);
     String tag2 = ais.readString(3);
-    if ("ID3".equals(tag2)) {
+    if (ID3_MAGIC.equals(tag2)) {
       ais.readStrict(); // minorVersion
       ais.readStrict(); // revVersion
       int flags = ais.readStrict();
       // byte length of the extended header, the padding and the frames after desynchronisation.
       // If a footer is present this equals to (‘total size’ - 20) bytes, otherwise (‘total size’ - 10) bytes.
-      int size = read32bitSynchSafe(ais);
+      int size = SynchSafe.toInt(ais.readNBytesStrict(4));
       // (flags & 0x2) != 0; // extended
-      boolean footer = (flags & 0x8) != 0;
-      ais.skipNBytes((long)size + (footer ? 10 : 0));
+      boolean footer = (flags & 0x10) != 0;
+
+      ais.skipNBytes((long) size + (footer ? 10 : 0));
+      return ais.location();
     } else { // no ID3v2
       ais.reset();
+      return 0;
     }
   }
 
@@ -372,22 +377,6 @@ public abstract class MpegAudioInfoSupplier implements AudioInfoSupplier<MpegInf
     } else {
       return true;
     }
-  }
-
-  private int read32bitSynchSafe(AudioInputStream ais) throws IOException {
-    return read32bitSynchSafeInt(ais.readNBytesStrict(4));
-  }
-
-  private static int read32bitSynchSafeInt(byte[] bytes) {
-    return (((bytes[0] << 7 | (bytes[1]&0xff)) << 7) | (bytes[2]&0xff)) << 7 | (bytes[3]&0xff);
-  }
-
-  protected static byte[] toSynchSafeBytes(int i) {
-    byte b0 = (byte)(i >> 21);
-    byte b1 = (byte)(i >> 14 & 0xff);
-    byte b2 = (byte)(i >> 7 & 0xff);
-    byte b3 = (byte)(i & 0xff);
-    return new byte[]{b0, b1, b2, b3};
   }
 
   static final class FrameDetails {

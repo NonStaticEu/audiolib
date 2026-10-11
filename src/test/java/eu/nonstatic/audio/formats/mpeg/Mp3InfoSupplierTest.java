@@ -9,13 +9,22 @@
  */
 package eu.nonstatic.audio.formats.mpeg;
 
-import eu.nonstatic.audio.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import eu.nonstatic.audio.AudioFileType;
+import eu.nonstatic.audio.AudioInputStream;
+import eu.nonstatic.audio.AudioIssue;
 import eu.nonstatic.audio.AudioIssue.Type;
+import eu.nonstatic.audio.AudioTestBase;
+import eu.nonstatic.audio.FaultyStream;
 import eu.nonstatic.audio.formats.AudioFormatException;
 import eu.nonstatic.audio.formats.AudioInfoException;
 import eu.nonstatic.audio.formats.mpeg.MpegAudioInfoSupplier.FrameDetails;
-import org.junit.jupiter.api.Test;
-
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -23,8 +32,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class Mp3InfoSupplierTest implements AudioTestBase {
 
@@ -197,10 +205,5 @@ class Mp3InfoSupplierTest implements AudioTestBase {
     assertEquals("Cannot handle bitrate for index d at 253: /audio/Moog-juno-303-example.mp3:malformedframe", issue1.getCause().getMessage());
 
     assertEquals(Type.SYNC, issues.get(1).getType());
-  }
-
-  @Test
-  void should_encode_synch_safe_bytes() {
-    assertArrayEquals(new byte[]{9, -74, 100, 119}, MpegAudioInfoSupplier.toSynchSafeBytes(19772023));
   }
 }

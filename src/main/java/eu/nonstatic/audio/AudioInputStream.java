@@ -13,6 +13,7 @@ import static java.nio.ByteOrder.BIG_ENDIAN;
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,8 @@ import java.nio.file.Path;
 import lombok.Getter;
 
 /**
+ * This stream MUST be buffered
+ *
  * Reminder:
  * x86 is little endian (LE)
  * 68k is big endian (BE)
@@ -44,6 +47,10 @@ public class AudioInputStream extends BufferedInputStream {
 
   public AudioInputStream(Path file) throws IOException {
     this(Files.newInputStream(file), file.toString());
+  }
+
+  public AudioInputStream(byte[] bytes, String name) {
+    this(new ByteArrayInputStream(bytes), name);
   }
 
   public AudioInputStream(InputStream is, String name) {

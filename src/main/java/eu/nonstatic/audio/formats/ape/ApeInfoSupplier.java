@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <a href="https://en.wikipedia.org/wiki/APE_tag">...</a>
+ */
 @Slf4j
 public class ApeInfoSupplier implements AudioInfoSupplier<ApeInfo> {
   /* The earliest and latest file formats supported by this library */
