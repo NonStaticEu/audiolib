@@ -1,3 +1,12 @@
+/**
+ * Audiolib
+ * Copyright (C) 2022 NonStatic
+ *
+ * This file is part of audiolib.
+ * Audiolib is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ * Audiolib is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with Audiolib. If not, see <https://www.gnu.org/licenses/>.
+ */
 package eu.nonstatic.audio;
 
 import static eu.nonstatic.audio.formats.mpeg.MpegAudioInfoSupplier.ID3_FOOTER_LENGTH;
@@ -13,12 +22,10 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.file.Path;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 class AudioUtilsTest implements AudioTestBase {
 
@@ -98,7 +105,7 @@ class AudioUtilsTest implements AudioTestBase {
 
 
   @Test
-  void should_open_file_with_oversized_id3v2_tag(@TempDir Path tempDir) throws Exception {
+  void should_open_file_with_oversized_id3v2_tag() throws Exception {
     byte[] plain;
     try(InputStream is = WAVE_URL.openStream()) {
       plain = is.readAllBytes();

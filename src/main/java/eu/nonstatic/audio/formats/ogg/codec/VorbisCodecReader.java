@@ -4,8 +4,8 @@
  *
  * This file is part of audiolib.
  * Audiolib is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
+ * Audiolib is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with Audiolib. If not, see <https://www.gnu.org/licenses/>.
  */
 package eu.nonstatic.audio.formats.ogg.codec;
 
@@ -60,7 +60,7 @@ public class VorbisCodecReader implements OggCodecReader<OggVorbisInfo> {
   @Override
   public OggVorbisInfo readBos(AudioInputStream ais, int serialNumber, OggPage.PacketSegment segment) throws UnsupportedCodecException, IOException {
     int segmentSize = segment.getSize();
-    SamplingDetails samplingDetails = readIdentificationPacket(ais, serialNumber, segment);
+    SamplingDetails samplingDetails = readIdentificationPacket(ais, serialNumber);
     OggVorbisInfo vorbisInfo = new OggVorbisInfo(ais.getName(), serialNumber, samplingDetails);
 
     if(segmentSize != 23) {
@@ -117,7 +117,7 @@ public class VorbisCodecReader implements OggCodecReader<OggVorbisInfo> {
    * "The bitrate fields are used only as hints.
    * The nominal bitrate field especially may be considerably off in purely VBR streams."
    */
-  private SamplingDetails readIdentificationPacket(AudioInputStream ais, int serialNumber, OggPage.PacketSegment segment)
+  private SamplingDetails readIdentificationPacket(AudioInputStream ais, int serialNumber)
       throws UnsupportedCodecException, IOException {
     long location = ais.location();
     int version = ais.read32bitLE();

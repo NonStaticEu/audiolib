@@ -1,3 +1,12 @@
+/**
+ * Audiolib
+ * Copyright (C) 2022 NonStatic
+ *
+ * This file is part of audiolib.
+ * Audiolib is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ * Audiolib is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with Audiolib. If not, see <https://www.gnu.org/licenses/>.
+ */
 package eu.nonstatic.audio.detect;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -6,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class FiltersTest {
@@ -19,7 +29,8 @@ class FiltersTest {
   private static final double UNIT_SINE_RMS = 1.0 / Math.sqrt(2.0);
 
 
-  static class IIR {
+  @Nested
+  class IIRTest {
     @Test
     void lowPassPassesLowAttenuatesHigh() {
       double low = rms(Filters.IIR.lowPass(sine(100, 1.0), SAMPLE_RATE, 1000), SETTLED);
@@ -118,8 +129,8 @@ class FiltersTest {
 
 
 
-
-  static class RBJ {
+  @Nested
+  class RBJTest {
     @Test
     void biquadLowPassPassesLowAttenuatesHigh() {
       double low = rms(Filters.RBJ.lowPass(sine(100, 1.0), SAMPLE_RATE, 1000, BUTTERWORTH_Q), SETTLED);

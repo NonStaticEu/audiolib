@@ -4,8 +4,8 @@
  *
  * This file is part of audiolib.
  * Audiolib is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
+ * Audiolib is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with Audiolib. If not, see <https://www.gnu.org/licenses/>.
  */
 package eu.nonstatic.audio;
 
@@ -125,9 +125,9 @@ public record AudioAnalyzer(int windowFrames, int overlapFrames) {
   public static double[] hanning(double[] audioBuffer, int start, int len) {
     len = Math.min(audioBuffer.length - start, len);
     double[] result = Arrays.copyOfRange(audioBuffer, start, start+len);
-    int N = len - 1;
-    for (int i = 0, n = 0; i < len; i++, n++) {
-      result[i] = result[i] * 0.5 * (1.0 - Math.cos(2.0 * Math.PI * n / N));
+    int n = len - 1;
+    for (int i = 0, m = 0; i < len; i++, m++) {
+      result[i] = result[i] * 0.5 * (1.0 - Math.cos(2.0 * Math.PI * m / n));
     }
     return result;
   }
@@ -174,13 +174,17 @@ public record AudioAnalyzer(int windowFrames, int overlapFrames) {
   /**
    * @return Complex[number of windows][windowSize-length frequencies] FFT changes the original signal is a set of sine waves. In order for that basis to describe all the possible
    * inputs it needs to be able to represent amplitude (real) and phase (imaginary)
+   * @deprecated
    */
-  @Deprecated
+  @Deprecated(forRemoval = false)
   public Complex[][] fftSliding(double[] audioBuffer) {
     return fftSliding(audioBuffer, 0, audioBuffer.length);
   }
 
-  @Deprecated
+  /**
+   * @deprecated
+   */
+  @Deprecated(forRemoval = false)
   public Complex[][] fftSliding(double[] audioBuffer, int start, int len) {
     int windowCount = getWindowsCount(len);
 

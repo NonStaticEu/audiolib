@@ -4,8 +4,8 @@
  *
  * This file is part of audiolib.
  * Audiolib is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
+ * Audiolib is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with Audiolib. If not, see <https://www.gnu.org/licenses/>.
  */
 package eu.nonstatic.audio.ui;
 
@@ -13,20 +13,19 @@ import edu.princeton.cs.algs4.Complex;
 import eu.nonstatic.audio.ComplexUtils;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.io.Serial;
 import javax.swing.JPanel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * X axis is time
  * Y axis is frequency
  * Color axis is magnitude
  */
+@Slf4j
 public class SpectrumPanel extends JPanel {
 
-  @Serial
-  private static final long serialVersionUID = 1L;
-  private final Complex[][] fftBuffer;
+  private final transient Complex[][] fftBuffer;
   @Getter
   private final boolean logMode;
 
@@ -71,16 +70,27 @@ public class SpectrumPanel extends JPanel {
 
   
   public static Color getColor(double mag) {
-    double r0 = 0.0001, r1 = 0.001, r2 = 0.01, r3 = 0.1, r4 = 1.0;
+    double r0 = 0.0001;
+    double r1 = 0.001;
+    double r2 = 0.01;
+    double r3 = 0.1;
+    double r4 = 1.0;
+
     if(mag < r0) {
       return Color.black;
     }
     
     mag = Math.log(Math.min(mag, 1.0));
     
-    double t0 = Math.log(r0), t1 = Math.log(r1), t2 = Math.log(r2), t3 = Math.log(r3), t4 = Math.log(r4);
+    double t0 = Math.log(r0);
+    double t1 = Math.log(r1);
+    double t2 = Math.log(r2);
+    double t3 = Math.log(r3);
+    double t4 = Math.log(r4);
     
-    int r, g, b;
+    int r;
+    int g;
+    int b;
     if(mag < t1) {
       r = 0;
       g = 0;
@@ -103,7 +113,7 @@ public class SpectrumPanel extends JPanel {
     }
     
     if(r < 0 || g < 0 || b < 0 || r > 255 || g > 255 || b > 255) {
-      System.out.println("no good");
+      log.warn("R: {}, G:{}, B: {}", r, g, b);
     }
     
     return new Color(r, g, b);

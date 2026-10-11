@@ -4,8 +4,8 @@
  *
  * This file is part of audiolib.
  * Audiolib is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
+ * Audiolib is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with Audiolib. If not, see <https://www.gnu.org/licenses/>.
  */
 package eu.nonstatic.audio;
 
@@ -40,7 +40,8 @@ class SamplingTest {
     assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, 0, -1, FORMAT_44100_16_MONO)); // neg length
     assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, 4, 0, FORMAT_44100_16_MONO)); //start after samples end
     assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, 2, 2, FORMAT_44100_16_MONO)); // total length after samples end
-    assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, 1, 2, new AudioFormat(Encoding.ALAW, 44100f, 16, 2, 4, 44100f, false))); // not signed samples
+    AudioFormat alawFormat = new AudioFormat(Encoding.ALAW, 44100f, 16, 2, 4, 44100f, false);
+    assertThrows(IllegalArgumentException.class, () -> new Sampling(new double[]{0, 0, 0}, 1, 2, alawFormat)); // not signed samples
   }
 
   @Test
@@ -123,15 +124,20 @@ class SamplingTest {
     double[] samples = new double[100_000];
     Sampling sampling = new Sampling(samples, FORMAT_44100_16_MONO);
 
-    assertThrows(IllegalArgumentException.class, () -> sampling.slice(new TimeCode(0, 0, 10), new TimeCode(99, 0, 0)));
-    Sampling slice1 = sampling.safe().slice(new TimeCode(0, 0, 10), new TimeCode(99, 0, 0));
+    TimeCode tc10F = new TimeCode(0, 0, 10);
+    TimeCode tc99M = new TimeCode(99, 0, 0);
+    assertThrows(IllegalArgumentException.class, () -> sampling.slice(tc10F, tc99M));
+    Sampling slice1 = sampling.safe().slice(tc10F, tc99M);
     assertEquals(11760, slice1.start());
     assertEquals(100000-11760, slice1.length());
 
-    Sampling slice2 = sampling.safe().slice(new TimeCode(0, 0, 20), Duration.ofMinutes(99));
+    TimeCode tc20F = new TimeCode(0, 0, 20);
+    Duration d99M = Duration.ofMinutes(99);
+    Sampling slice2 = sampling.safe().slice(tc20F, d99M);
     assertEquals(23520, slice2.start());
     assertEquals(100000-23520, slice2.length());
-    assertThrows(IllegalArgumentException.class, () -> sampling.unsafe().slice(new TimeCode(0, 0, 20), Duration.ofMinutes(99)));
+    Sampling unsafe = sampling.unsafe();
+    assertThrows(IllegalArgumentException.class, () -> unsafe.slice(tc20F, d99M));
   }
 
   @Test

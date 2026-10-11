@@ -4,8 +4,8 @@
  *
  * This file is part of audiolib.
  * Audiolib is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- *  is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License along with . If not, see <https://www.gnu.org/licenses/>.
+ * Audiolib is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License along with Audiolib. If not, see <https://www.gnu.org/licenses/>.
  */
 package eu.nonstatic.audio.detect;
 
@@ -56,7 +56,8 @@ public final class Filters {
       double dt = 1.0 / sampleRate;
       double alpha = rc / (rc + dt);
       double[] out = new double[len];
-      double prevX = 0, prevY = 0;
+      double prevX = 0;
+      double prevY = 0;
       for (int i = 0; i < len; i++) {
         double x = samples[start+i];
         double y = alpha * (prevY + x - prevX);
@@ -150,9 +151,16 @@ public final class Filters {
 
     // Direct Form I biquad: y[n] = (b0/a0)x[n] + (b1/a0)x[n-1] + (b2/a0)x[n-2] - (a1/a0)y[n-1] - (a2/a0)y[n-2]
     private static double[] biquad(double[] samples, int start, int len, double b0, double b1, double b2, double a0, double a1, double a2) {
-      double nb0 = b0 / a0, nb1 = b1 / a0, nb2 = b2 / a0, na1 = a1 / a0, na2 = a2 / a0;
+      double nb0 = b0 / a0;
+      double nb1 = b1 / a0;
+      double nb2 = b2 / a0;
+      double na1 = a1 / a0;
+      double na2 = a2 / a0;
       double[] out = new double[len];
-      double x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+      double x1 = 0;
+      double x2 = 0;
+      double y1 = 0;
+      double y2 = 0;
       for (int i = 0; i < len; i++) {
         double x = samples[start+i];
         double y = nb0 * x + nb1 * x1 + nb2 * x2 - na1 * y1 - na2 * y2;
