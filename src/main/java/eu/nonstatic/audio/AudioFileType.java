@@ -28,6 +28,7 @@ public enum AudioFileType {
   DTS("DTS", List.of("dts")),
   APE("APE", List.of("ape", "apl", "mac"), List.of("audio/x-monkeys-audio")),
   OGG("Ogg", List.of("ogg", "oga"), List.of("audio/ogg")),
+  WMA("WMA", List.of("wma"), List.of("audio/x-ms-wma")),
   XM("XM", List.of("xm"));
 
   private final String displayName;

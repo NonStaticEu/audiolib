@@ -26,6 +26,7 @@ class AudioFileTypeTest {
     assertEquals(AudioFileType.MP3, AudioFileType.ofExtension("mp3"));
     assertEquals(AudioFileType.MP2, AudioFileType.ofExtension("MP2"));
     assertEquals(AudioFileType.FLAC, AudioFileType.ofExtension("flac"));
+    assertEquals(AudioFileType.WMA, AudioFileType.ofExtension("wma"));
   }
 
   @Test
@@ -50,6 +51,7 @@ class AudioFileTypeTest {
     assertEquals(List.of(AudioFileType.WAVE), AudioFileType.ofMimeType("audio/x-wav"));
     assertEquals(List.of(AudioFileType.MP3, AudioFileType.MP2), AudioFileType.ofMimeType("audio/mpeg"));
     assertEquals(List.of(AudioFileType.FLAC), AudioFileType.ofMimeType("audio/flac"));
+    assertEquals(List.of(AudioFileType.WMA), AudioFileType.ofMimeType("audio/x-ms-wma"));
   }
 
   @Test
@@ -96,6 +98,7 @@ class AudioFileTypeTest {
     assertEquals(List.of("mp3", "mp2"), AudioFileType.mimeTypeToExtensions("audio/mpeg"));
     assertEquals(List.of("wav", "wave"), AudioFileType.mimeTypeToExtensions("audio/x-wav"));
     assertEquals(List.of("flac"), AudioFileType.mimeTypeToExtensions("audio/flac"));
+    assertEquals(List.of("wma"), AudioFileType.mimeTypeToExtensions("audio/x-ms-wma"));
     assertThrows(IllegalArgumentException.class, () -> AudioFileType.mimeTypeToExtensions("audio/foobar"));
     assertThrows(IllegalArgumentException.class, () -> AudioFileType.mimeTypeToExtensions(null));
   }
@@ -105,6 +108,7 @@ class AudioFileTypeTest {
     assertEquals("mp3", AudioFileType.mimeTypeToExtension("audio/mpeg"));
     assertEquals("wav", AudioFileType.mimeTypeToExtension("audio/x-wav"));
     assertEquals("flac", AudioFileType.mimeTypeToExtension("audio/flac"));
+    assertEquals("wma", AudioFileType.mimeTypeToExtension("audio/x-ms-wma"));
     assertThrows(IllegalArgumentException.class, () -> AudioFileType.mimeTypeToExtension("audio/foobar"));
     assertThrows(IllegalArgumentException.class, () -> AudioFileType.mimeTypeToExtension(null));
   }
